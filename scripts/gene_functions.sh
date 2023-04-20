@@ -5,22 +5,22 @@
 #SBATCH --cpus-per-task=50
 #SBATCH --mem=50GB
 #SBATCH --job-name=gene_functions
-#SBATCH --output=../job_reports/%x-%j.SLURMout
+#SBATCH --output=job_reports/%x-%j.SLURMout
 
 #Set this variable to the path to wherever you have conda installed
-conda="${HOME}/miniconda3"
+conda="${HOME}/anaconda3"
 
 #Set variables
 threads=50
-protein_fasta="../../final/contigs/annotations/*-proteins.fa" #input proteins fasta file
-gff=../../final/contigs/annotations/*.gff #input gff file
+protein_fasta="/mnt/gs21/scratch/rittere5/domatia/ref/protein.faa" #input proteins fasta file
+gff="/mnt/gs21/scratch/rittere5/domatia/ref/genomic.gff" #input gff file
 arabidopsis_blast= #path to BLAST results, e.g. orthogroup filtered blast, if left blank, will run blast
 
 #Change to current directory
 cd ${PBS_O_WORKDIR}
 #Export paths to conda
-export PATH="${conda}/envs/gene-function/bin:${PATH}"
-export LD_LIBRARY_PATH="${conda}/envs/gene-function/lib:${LD_LIBRARY_PATH}"
+export PATH="${conda}/envs/diamond/bin:${PATH}"
+export LD_LIBRARY_PATH="${conda}/envs/diamond/lib:${LD_LIBRARY_PATH}"
 
 #Set temporary directories for large memory operations
 export TMPDIR=$(pwd)
@@ -30,9 +30,7 @@ export TEMP=$(pwd)
 #The following shouldn't need to be changed, but should set automatically
 path1=$(pwd | sed s/data.*/misc/)
 path2=$(pwd | sed s/data.*/scripts/)
-species=$(pwd | sed s/^.*\\/data\\/// | sed s/\\/.*//)
-genotype=$(pwd | sed s/.*\\/${species}\\/// | sed s/\\/.*//)
-sample=$(pwd | sed s/.*${species}\\/${genotype}\\/// | sed s/\\/.*//)
+species="Vriparia"
 path3="gene_functions"
 
 #Make & cd to directory
@@ -51,7 +49,7 @@ export TEMP=$(pwd)
 
 #Set some more variables
 proteins=$(ls ${protein_fasta} | sed s/.*\ //)
-output=$(echo ${proteins} | sed s/.*\\/// | sed s/\-proteins.*//)
+output=$(echo ${species})
 echo ${proteins}
 
 #Run interproscan
@@ -72,26 +70,27 @@ ${path2}/annotation/interproscan/interproscan.sh \
 if [ -z ${arabidopsis_blast} ]
 then
 	#Download Arabidopsis genes and create diamond DB
-	echo "Downloading Arabidopsis TAIR10 proteins"
-	wget -q https://www.arabidopsis.org/download_files/Proteins/TAIR10_protein_lists/TAIR10_pep_20110103_representative_gene_model
+	echo "Downloading Arabidopsis Araport11 proteins"
+	wget -q https://www.arabidopsis.org/download_files/Proteins/Araport11_protein_lists/Araport11_pep_20220914_representative_gene_model.gz
+	gunzip Araport11_pep_20220914_representative_gene_model.gz
 	echo "Making diamond blast DB for "
 	diamond makedb \
 		--threads ${threads} \
-		--in TAIR10_pep_20110103_representative_gene_model \
-		--db TAIR10.dmnd
+		--in Araport11_pep_20220914_representative_gene_model \
+		--db Araport11.dmnd
 
 	#Run diamond blastp against Arabidopsis 
 	echo "Running diamond blastp on "
 	diamond blastp \
 		--threads ${threads} \
-		--db TAIR10.dmnd \
+		--db Araport11.dmnd \
 		--query ${proteins} \
-		--out ${output}_TAIR10_blast.out \
+		--out ${output}_Araport11_blast.out \
 		--evalue 1e-6 \
 		--max-hsps 1 \
 		--max-target-seqs 5 \
 		--outfmt 0
-	arabidopsis_blast="${output}_TAIR10_blast.out"
+	arabidopsis_blast="${output}_Araport11_blast.out"
 fi
 
 #Download and format Arabidopsis TAIR10 functional descriptions
