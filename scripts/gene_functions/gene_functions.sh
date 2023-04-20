@@ -54,7 +54,7 @@ echo ${proteins}
 
 #Run interproscan
 echo "Running interproscan"
-${path2}/annotation/interproscan/interproscan.sh \
+${path2}/gene_function/interproscan.sh \
 	-cpu ${threads} \
 	-appl pfam \
 	-goterms \
@@ -101,7 +101,7 @@ TAIR10_functional_descriptions > TAIR10_short_functional_descriptions.txt
 
 #Format annotations 
 echo "Creating short functional descriptions file"
-perl ${path2}/annotation/pl/create_functional_annotation_file.pl \
+perl ${path2}/gene_function/pl/create_functional_annotation_file.pl \
 	--protein_fasta ${proteins} \
 	--model_annot TAIR10_short_functional_descriptions.txt \
 	--model_blast ${arabidopsis_blast} \
