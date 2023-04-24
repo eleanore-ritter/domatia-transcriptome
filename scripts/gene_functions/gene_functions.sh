@@ -19,8 +19,8 @@ arabidopsis_blast= #path to BLAST results, e.g. orthogroup filtered blast, if le
 #Change to current directory
 cd ${PBS_O_WORKDIR}
 #Export paths to conda
-export PATH="${conda}/envs/diamond/bin:${PATH}"
-export LD_LIBRARY_PATH="${conda}/envs/diamond/lib:${LD_LIBRARY_PATH}"
+export PATH="${conda}/envs/interproscan/bin:${PATH}"
+export LD_LIBRARY_PATH="${conda}/envs/interproscan/lib:${LD_LIBRARY_PATH}"
 
 #Set temporary directories for large memory operations
 export TMPDIR=$(pwd)
@@ -28,10 +28,11 @@ export TMP=$(pwd)
 export TEMP=$(pwd)
 
 #The following shouldn't need to be changed, but should set automatically
-path1=$(pwd | sed s/data.*/misc/)
-path2=$(pwd | sed s/data.*/scripts/)
+path1=$(pwd | sed s/ref.*/misc/)
+path2=$(pwd | sed s/ref.*/scripts/)
 species="Vriparia"
 path3="gene_functions"
+path4="/mnt/gs21/scratch/rittere5/my_interproscan/interproscan-5.61-93.0"
 
 #Make & cd to directory
 if [ -d ${path3} ]
@@ -54,7 +55,7 @@ echo ${proteins}
 
 #Run interproscan
 echo "Running interproscan"
-${path2}/gene_function/interproscan.sh \
+${path4}/interproscan.sh \
 	-cpu ${threads} \
 	-appl pfam \
 	-goterms \
