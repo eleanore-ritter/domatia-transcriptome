@@ -124,8 +124,8 @@ echo ${proteins}
 # echo "Transcript Locus Arabidopsis_blast_hit Arabidopsis_GO_terms PFAM_hits PFAM_GO_terms Short_functional_description" | \
 # tr ' ' '\t' > ${output}-functional-annotations.tsv
 #Modify Arabidopsis ID so it works with gene_association.tair
-sed 's/\.[0-9]//g' ${output}-description.tsv > temp
-mv temp ${output}-description.tsv
+sed 's/\.[0-9]//g' ${output}-description.tsv > tmp1.tsv
+mv tmp1.tsv ${output}-description.tsv
 #Loop over each gene and format data
 cut -f1 ${output}-description.tsv | sort | while read line
 do
