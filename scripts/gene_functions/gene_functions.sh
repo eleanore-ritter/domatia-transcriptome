@@ -1,11 +1,14 @@
 #!/bin/bash --login
-#SBATCH --time=168:00:00
+#SBATCH --time=03:59:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=50
 #SBATCH --mem=50GB
 #SBATCH --job-name=gene_functions
 #SBATCH --output=job_reports/%x-%j.SLURMout
+
+#NOTE: this was modified 4/25/23 to fix the Arabidopsis ID names, so most of the script was commented out and the SBATCH time was decreased from 168 hours
+#Modify this script back once done (but keep the new sed line)
 
 #Set this variable to the path to wherever you have conda installed
 conda="${HOME}/anaconda3"
@@ -53,73 +56,76 @@ proteins=$(ls ${protein_fasta} | sed s/.*\ //)
 output=$(echo ${species})
 echo ${proteins}
 
-#Run interproscan
-echo "Running interproscan"
-${path4}/interproscan.sh \
-	-cpu ${threads} \
-	-appl pfam \
-	-goterms \
-	-pa \
-	-dp \
-	-iprlookup \
-	-t p \
-	-f TSV \
-	-i ${proteins} \
-	-o ${output}.iprscan
+# #Run interproscan
+# echo "Running interproscan"
+# ${path4}/interproscan.sh \
+# 	-cpu ${threads} \
+# 	-appl pfam \
+# 	-goterms \
+# 	-pa \
+# 	-dp \
+# 	-iprlookup \
+# 	-t p \
+# 	-f TSV \
+# 	-i ${proteins} \
+# 	-o ${output}.iprscan
 
-#Check if BLAST results provided, if not, then run BLAST
-if [ -z ${arabidopsis_blast} ]
-then
-	#Download Arabidopsis genes and create diamond DB
-	echo "Downloading Arabidopsis Araport11 proteins"
-	wget -q https://www.arabidopsis.org/download_files/Proteins/Araport11_protein_lists/Araport11_pep_20220914_representative_gene_model.gz
-	gunzip Araport11_pep_20220914_representative_gene_model.gz
-	echo "Making diamond blast DB for "
-	diamond makedb \
-		--threads ${threads} \
-		--in Araport11_pep_20220914_representative_gene_model \
-		--db Araport11.dmnd
+# #Check if BLAST results provided, if not, then run BLAST
+# if [ -z ${arabidopsis_blast} ]
+# then
+# 	#Download Arabidopsis genes and create diamond DB
+# 	echo "Downloading Arabidopsis Araport11 proteins"
+# 	wget -q https://www.arabidopsis.org/download_files/Proteins/Araport11_protein_lists/Araport11_pep_20220914_representative_gene_model.gz
+# 	gunzip Araport11_pep_20220914_representative_gene_model.gz
+# 	echo "Making diamond blast DB for "
+# 	diamond makedb \
+# 		--threads ${threads} \
+# 		--in Araport11_pep_20220914_representative_gene_model \
+# 		--db Araport11.dmnd
 
-	#Run diamond blastp against Arabidopsis 
-	echo "Running diamond blastp on "
-	diamond blastp \
-		--threads ${threads} \
-		--db Araport11.dmnd \
-		--query ${proteins} \
-		--out ${output}_Araport11_blast.out \
-		--evalue 1e-6 \
-		--max-hsps 1 \
-		--max-target-seqs 5 \
-		--outfmt 0
-	arabidopsis_blast="${output}_Araport11_blast.out"
-fi
+# 	#Run diamond blastp against Arabidopsis 
+# 	echo "Running diamond blastp on "
+# 	diamond blastp \
+# 		--threads ${threads} \
+# 		--db Araport11.dmnd \
+# 		--query ${proteins} \
+# 		--out ${output}_Araport11_blast.out \
+# 		--evalue 1e-6 \
+# 		--max-hsps 1 \
+# 		--max-target-seqs 5 \
+# 		--outfmt 0
+# 	arabidopsis_blast="${output}_Araport11_blast.out"
+# fi
 
-#Download and format Arabidopsis TAIR10 functional descriptions
-echo "Downloading and formatting Arabidopsis TAIR10 functional descriptions"
-wget -q https://www.arabidopsis.org/download_files/Genes/TAIR10_genome_release/TAIR10_functional_descriptions
-perl -e  'while (my $line = <>){ my @elems = split "\t", $line; if($elems[2] ne "") {print "$elems[0]\t$elems[2]\n"}}' \
-TAIR10_functional_descriptions > TAIR10_short_functional_descriptions.txt
+# #Download and format Arabidopsis TAIR10 functional descriptions
+# echo "Downloading and formatting Arabidopsis TAIR10 functional descriptions"
+# wget -q https://www.arabidopsis.org/download_files/Genes/TAIR10_genome_release/TAIR10_functional_descriptions
+# perl -e  'while (my $line = <>){ my @elems = split "\t", $line; if($elems[2] ne "") {print "$elems[0]\t$elems[2]\n"}}' \
+# TAIR10_functional_descriptions > TAIR10_short_functional_descriptions.txt
 
-#Format annotations 
-echo "Creating short functional descriptions file"
-perl ${path2}/gene_function/pl/create_functional_annotation_file.pl \
-	--protein_fasta ${proteins} \
-	--model_annot TAIR10_short_functional_descriptions.txt \
-	--model_blast ${arabidopsis_blast} \
-	--pfam_results_file ${output}.iprscan \
-	--max_hits 1 \
-	--output ${output}-description.tsv
+# #Format annotations 
+# echo "Creating short functional descriptions file"
+# perl ${path2}/gene_function/pl/create_functional_annotation_file.pl \
+# 	--protein_fasta ${proteins} \
+# 	--model_annot TAIR10_short_functional_descriptions.txt \
+# 	--model_blast ${arabidopsis_blast} \
+# 	--pfam_results_file ${output}.iprscan \
+# 	--max_hits 1 \
+# 	--output ${output}-description.tsv
 
-#Download Arabidopsis GO terms
-echo "Downloading Arabidopsis GO terms"
-wget -q https://www.arabidopsis.org/download_files/GO_and_PO_Annotations/Gene_Ontology_Annotations/gene_association.tair.gz
-gunzip gene_association.tair.gz
+# #Download Arabidopsis GO terms
+# echo "Downloading Arabidopsis GO terms"
+# wget -q https://www.arabidopsis.org/download_files/GO_and_PO_Annotations/Gene_Ontology_Annotations/gene_association.tair.gz
+# gunzip gene_association.tair.gz
 
-#Combine and format data sources
-echo "Formatting functional annotations files"
-#Create header for output file
-echo "Transcript Locus Arabidopsis_blast_hit Arabidopsis_GO_terms PFAM_hits PFAM_GO_terms Short_functional_description" | \
-tr ' ' '\t' > ${output}-functional-annotations.tsv
+# #Combine and format data sources
+# echo "Formatting functional annotations files"
+# #Create header for output file
+# echo "Transcript Locus Arabidopsis_blast_hit Arabidopsis_GO_terms PFAM_hits PFAM_GO_terms Short_functional_description" | \
+# tr ' ' '\t' > ${output}-functional-annotations.tsv
+#Modify Arabidopsis ID so it works with gene_association.tair
+sed 's/\.[0-9]//g' ${output}-description.tsv > temp
+mv temp ${output}-description.tsv
 #Loop over each gene and format data
 cut -f1 ${output}-description.tsv | sort | while read line
 do
