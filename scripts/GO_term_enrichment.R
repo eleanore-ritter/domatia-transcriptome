@@ -25,9 +25,23 @@ degenes <- read.csv("DE_genes_Domatia_V_Leaf_588710.csv")
 # Modify data
 
 ## Modify GO term file
-allgo <- all[,c(2,7)]
+allgo <- all[,c(2,5,7)]
+foo<-function(x){
+  inds<-allgo$gene==x
+  tmp1<-unique(unlist(strsplit(allgo$Arabidopsis_GO_terms[inds],"\\|"),use.names=FALSE))
+  tmp1<-tmp1[nzchar(tmp1)&!is.na(tmp1)]
+  tmp2<-unique(unlist(strsplit(allgo$PFAM_GO_terms[inds],"\\|"),use.names=FALSE))
+  tmp2<-tmp2[nzchar(tmp2)&!is.na(tmp2)]
+  data.frame("gene"=x,
+             "Arabidopsis_GO_terms"=paste(tmp1,collapse="|"),
+             "PFAM_GO_terms"=paste(tmp2,collapse="|"))
+}
+allgo <- do.call(rbind,
+                 lapply(unique(allgo$gene),foo))
+
 rn1 <- paste(allgo[,1], sep="")
-gene2GO = allgo[,-1]
+gene2GO <- paste(allgo$Arabidopsis_GO_terms, allgo$PFAM_GO_terms, sep="|")
+#gene2GO = allgo[,-1]
 names(gene2GO)<-rn1
 gene2GO<-strsplit(gene2GO,"\\|")
 
