@@ -19,5 +19,18 @@ cd ${PBS_O_WORKDIR}
 export PATH="${conda}/envs/diamond/bin:${PATH}"
 export LD_LIBRARY_PATH="${conda}/envs/diamond/lib:${LD_LIBRARY_PATH}"
 
-diamond makedb --in Araport11_genes.201606.pep.fasta -d Araport11
+# Arabidopsis
+# mkdir Arabidopsis
+# cd Arabidopis
+# diamond makedb --in Araport11_genes.201606.pep.fasta -d Araport11
+
+# cd ../
+
+# Vitis vinifera
+mkdir Vvinifera 
+cd Vvinifera
+
+wget https://urgi.versailles.inra.fr/files/Vini/Vitis%2012X.2%20annotations/vitviv2.pep.fasta.zip
+unzip -a vitviv2.pep.fasta.zip
+diamond makedb --in vitviv2.pep.fasta -d Vvinifera_VCost3
 ...
