@@ -13,43 +13,104 @@ raw.data <- read.csv("domatia_trichomes_2022_final.csv")
 # Extract out our two genotypes
 gen1 <- raw.data[grep("588710",raw.data$plant_code),]
 gen2 <- raw.data[grep("588711",raw.data$plant_code),]
-data <- rbind(gen1, gen2)
 
-# Add column for genotype
-data$genotype <- data$plant_code
-data$genotype <- gsub("-.*", "", data$genotype)
+# Merge all radius and density data
+gen1.temp1 <- data.frame(gen1$radius_1, gen1$radius_2, gen1$radius_3, gen1$radius_4)
+gen1.temp2 <- as.data.frame(unlist(gen1.temp1))
+gen1.temp3 <- as.data.frame(unlist(data.frame(gen1$density_1, gen1$density_2, gen1$density_3, gen1$density_4)))
+gen1.temp3$genotype <- c("588710")
+gen1.fin <- cbind(gen1.temp2, gen1.temp3)
+colnames(gen1.fin) <- c("Radius", "Density", "Genotype")
 
-# Plot density_1 and radius_1 against dry mass to see if anything stands out
-col.710 <- c("#E63946")
-col.711 <- c("#457B9D")
+gen2.temp1 <- data.frame(gen2$radius_1, gen2$radius_2, gen2$radius_3, gen2$radius_4)
+gen2.temp2 <- as.data.frame(unlist(gen2.temp1))
+gen2.temp3 <- as.data.frame(unlist(data.frame(gen2$density_1, gen2$density_2, gen2$density_3, gen2$density_4)))
+gen2.temp3$genotype <- c("588711")
+gen2.fin <- cbind(gen2.temp2, gen2.temp3)
+colnames(gen2.fin) <- c("Radius", "Density", "Genotype")
 
-p1 <- ggplot(data, aes(x = density_1, y = dry_mass..mg.)) +
-  geom_point(aes(color = genotype), size=2, shape=19) +
-  scale_color_manual(values = c(col.710, col.711)) +
+data <- rbind(gen1.fin, gen2.fin)
+
+# Plot density as box and whisker plot
+gen1.den <- data[data$Genotype=="588710",]
+gen1.counts <- as.data.frame(table(gen1.den$Density))
+gen1.counts$Genotype <- c("588710")
+gen2.den <- data[data$Genotype=="588711",]
+gen2.counts <- as.data.frame(table(gen2.den$Density))
+gen2.counts$Var1<-factor(gen2.counts$Var1,levels=c(0,1,3,5,7,9))
+gen2.counts$Genotype <- c("588711")
+gen2.counts<-rbind(gen2.counts,data.frame(Var1=c(0,1),Freq=0,Genotype=588711))
+gen2.counts<-gen2.counts[order(gen2.counts$Var1),]
+
+counts <- rbind(gen1.counts, gen2.counts)
+colnames(counts) <- c("Density", "Counts", "Genotype")
+
+col.710 <- c("#024F4A")
+col.711 <- c("#05B384")
+
+ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
+  geom_bar(stat='identity', position = 'dodge') +
   theme_classic() +
-  labs(x = "Density 1", y = "Dry Mass (mg)") +
-  theme(axis.title.x=element_text(colour="black", size=12),
-        axis.title.y=element_text(colour="black", size=12),
-        axis.text.x=element_text(colour="black", size=10),
-        axis.text.y = element_text(colour="black", size=10),
-        legend.position = "none")
-
-p2 <- ggplot(data, aes(x = radius_1, y = dry_mass..mg.)) +
-  geom_point(aes(color = genotype), size = 2, shape=19) +
-  scale_color_manual(values = c(col.710, col.711)) +
-  theme_classic()+
-  labs(x = "Radius 1", y = "Dry Mass (mg)") +
-  theme(axis.title.x=element_text(colour="black", size=12),
-        axis.title.y=element_text(colour="black", size=12),
-        axis.text.x=element_text(colour="black", size=10),
-        axis.text.y = element_text(colour="black", size=10),
+  theme(axis.title.x=element_text(colour="black", size=14),
+        axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.text.x=element_text(colour="black", size=12),
+        axis.text.y = element_text(colour="black", size=12),
         legend.position = "right",
-        legend.justification = "center",
-        legend.title = element_blank(),
-        legend.key.size = unit(0.25, "cm"),
-        legend.text = element_text(colour="black", size=12))
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size=14)) +
+  scale_fill_manual(values = c(col.710, col.711)) +
+  scale_y_continuous(expand = c(0,0))
 
-plot_grid(p1, p2, nrow=1, ncol=2, rel_widths = c(1.6,2))
+# Plot radius as a violin plot
+ggplot(data, aes(x=Genotype, y=Radius)) + 
+  geom_violin() + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  theme_classic() +
+  theme(axis.title.x=element_text(colour="black", size=14),
+        axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.text.x=element_text(colour="black", size=12),
+        axis.text.y = element_text(colour="black", size=12),
+        legend.position = "none") +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 2.8), breaks = c(0, 0.5, 1.0, 1.5, 2.0, 2.5) ) +
+  ylab("Domatia Radius (mm)") +
+  geom_signif(
+    comparisons = list(c("588710", "588711")),
+    test= t.test,
+    map_signif_level = TRUE, textsize = 6,
+    y_position = 2.5)
+  
+
+# # Outdated - might want to delete
+# # Plot density against radius to see if anything stands out
+# col.710 <- c("#E63946")
+# col.711 <- c("#457B9D")
+# 
+# p1 <- ggplot(data, aes(x = density, y = radius)) +
+#   geom_point(aes(color = genotype), size=2, shape=19) +
+#   scale_color_manual(values = c(col.710, col.711)) +
+#   theme_classic() +
+#   labs(x = "Density 1", y = "Dry Mass (mg)") +
+#   theme(axis.title.x=element_text(colour="black", size=12),
+#         axis.title.y=element_text(colour="black", size=12),
+#         axis.text.x=element_text(colour="black", size=10),
+#         axis.text.y = element_text(colour="black", size=10),
+#         legend.position = "none")
+# 
+# p2 <- ggplot(data, aes(x = radius_1, y = dry_mass..mg.)) +
+#   geom_point(aes(color = genotype), size = 2, shape=19) +
+#   scale_color_manual(values = c(col.710, col.711)) +
+#   theme_classic()+
+#   labs(x = "Radius 1", y = "Dry Mass (mg)") +
+#   theme(axis.title.x=element_text(colour="black", size=12),
+#         axis.title.y=element_text(colour="black", size=12),
+#         axis.text.x=element_text(colour="black", size=10),
+#         axis.text.y = element_text(colour="black", size=10),
+#         legend.position = "right",
+#         legend.justification = "center",
+#         legend.title = element_blank(),
+#         legend.key.size = unit(0.25, "cm"),
+#         legend.text = element_text(colour="black", size=12))
+# 
+# plot_grid(p1, p2, nrow=1, ncol=2, rel_widths = c(1.6,2))
 
 # ## Run t-test
 # a = na.omit(data[data$genotype==588710,])
