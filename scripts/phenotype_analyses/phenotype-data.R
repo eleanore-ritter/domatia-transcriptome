@@ -1,6 +1,6 @@
 # Set working directory and load necessary packages
-#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(ggplot2)
 library(cowplot)
