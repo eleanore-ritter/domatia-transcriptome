@@ -1,8 +1,8 @@
 #NOTE: Biomart code was edited to include GO terms: , 'name_1006', 'definition_1006'
 
 # Set working directory and load necessary packages
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 library(DESeq2)
 library(dplyr)
 library(stringr)
@@ -375,6 +375,37 @@ temp6 <- temp2[rownames(temp2)%in%rownames(geno2.final),]
 
 dom.both <- DOM.710.final[rownames(DOM.710.final)%in%rownames(DOM.711.final),]
 
+# DIFFERENT VERSION BELOW, READING IN FILES ALREADY MADE
+concon <- read.csv("DE_genes_Control_710_v_711.csv")
+row.names(concon) <- concon$Gene
+
+domdom <- read.csv("DE_genes_Domatia_710_v_711.csv")
+row.names(domdom) <- domdom$Gene
+
+domcon.710 <- read.csv("DE_genes_Domatia_V_Leaf_588710.csv")
+row.names(domcon.710) <- domcon.710$Gene
+
+domcon.711 <- read.csv("DE_genes_Domatia_V_Leaf_588711.csv")
+row.names(domcon.711) <- domcon.711$Gene
+
+# Shared between domatia and domatia
+a <- domcon.710[rownames(domcon.710)%in%rownames(domcon.711),]
+
+# Shared between control and domatia 710
+b <- concon[rownames(concon)%in%rownames(domcon.710),]
+
+# Shared between control and domatia 711
+c <- concon[rownames(concon)%in%rownames(domcon.711),]
+
+# Shared between domatia and domatia 710
+d <- domcon.710[rownames(domcon.710)%in%rownames(domdom),]
+
+# Shared between domatia and domatia 711
+e <- domcon.711[rownames(domcon.711)%in%rownames(domdom),]
+
+# Shared between control and domatia
+f <- concon[rownames(concon)%in%rownames(domdom),]
+
 ############################### HEATMAPS FOR DIFFERENT GENE GROUPS ###############################
 #Plot only a subset - cell wall genes
 cell.wall <- remove_missing(dom.both[dom.both$name_1006=="cell wall organization" | dom.both$name_1006=="polysaccharide binding",])
@@ -465,7 +496,7 @@ final <- read.csv("DE_genes_Domatia_v_Leaf.csv")
 row.names(final) <- final$Gene
 
 # Restructure data
-genename <- c("LOC117909251") # Define gene of interest
+genename <- c("LOC117913091") # Define gene of interest
 gene <- final[rownames(final)%in%genename,23:34] # Get normalized reads for only the gene of interest
 gene.long <- pivot_longer(gene, everything()) # Transpose from wide to long format for plotting
 gene.long$sample <- c("1", "4", "5", "1", "4", "5", "6", "8", "9", "6", "8", "9")
@@ -478,8 +509,8 @@ gene.long$genotype <- c("588710", "588710","588710", "588710", "588710","588710"
 # domcolor <- c("#114b5f")
 # concolor <- c("#1a936f")
 
-domcolor <- c("#558B6E")
-concolor <- c("#383B56")
+domcolor <- c("#4735E9")
+concolor <- c("#000000")
 
 
 ggplot(gene.long, aes(x=sample, y=value)) +
@@ -501,3 +532,17 @@ ggplot(gene.long, aes(x=sample, y=value)) +
         legend.title = element_blank(),
         legend.key.size = unit(0.25, "cm"),
         legend.text = element_text(colour="black", size=12))
+
+ggplot(gene.long, aes(x=genotype, y=value)) +
+  geom_boxplot(aes(color=treatment)) +
+  geom_point(aes(color=treatment), size=3, position = position_dodge(width = 0.761), alpha=0.75) +
+  ylab("Normalized Read Counts") +
+  theme_classic() +
+  theme(axis.title.y=element_text(colour="black", size=14),
+        axis.text.y = element_text(colour="black", size=14),
+        legend.position = "bottom",
+        legend.justification = "center",
+        legend.title = element_blank(),
+        legend.key.size = unit(0.5, "cm"),
+        legend.text = element_text(colour="black", size=20)) +
+  scale_color_manual(values = c(concolor, domcolor))

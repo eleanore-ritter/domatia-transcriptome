@@ -30,6 +30,9 @@ gen2.fin <- cbind(gen2.temp2, gen2.temp3)
 colnames(gen2.fin) <- c("Radius", "Density", "Genotype")
 
 data <- rbind(gen1.fin, gen2.fin)
+data$Genotype <- gsub("588710", "Little", data$Genotype)
+data$Genotype <- gsub("588711", "Big", data$Genotype)
+data$Genotype <- as.factor(data$Genotype)
 
 # Plot density as box and whisker plot
 gen1.den <- data[data$Genotype=="588710",]
@@ -44,36 +47,40 @@ gen2.counts<-gen2.counts[order(gen2.counts$Var1),]
 
 counts <- rbind(gen1.counts, gen2.counts)
 colnames(counts) <- c("Density", "Counts", "Genotype")
+counts$Genotype <- gsub("588710", "Little", counts$Genotype)
+counts$Genotype <- gsub("588711", "Big", counts$Genotype)
 
-col.710 <- c("#024F4A")
-col.711 <- c("#05B384")
+col.711 <- c("#024F4A")
+col.710 <- c("#05B384")
 
 ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
   geom_bar(stat='identity', position = 'dodge') +
   theme_classic() +
   theme(axis.title.x=element_text(colour="black", size=14),
         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
-        axis.text.x=element_text(colour="black", size=12),
-        axis.text.y = element_text(colour="black", size=12),
+        axis.text.x=element_text(colour="black", size=14),
+        axis.text.y = element_text(colour="black", size=14),
         legend.position = "right",
-        legend.text = element_text(size = 12),
+        legend.text = element_text(size = 14),
         legend.title = element_text(size=14)) +
-  scale_fill_manual(values = c(col.710, col.711)) +
+  scale_fill_manual(values = c(col.710, col.711), limits = c("Little", "Big")) +
   scale_y_continuous(expand = c(0,0))
 
 # Plot radius as a violin plot
-ggplot(data, aes(x=Genotype, y=Radius)) + 
-  geom_violin() + geom_jitter(shape=16, position=position_jitter(0.2)) +
+ggplot(data, aes(x=factor(Genotype, levels = c('Little', 'Big')), y=Radius, fill=Genotype)) + 
+  geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme_classic() +
+  scale_fill_manual(values = c(col.710, col.711), limits = c("Little", "Big")) +
   theme(axis.title.x=element_text(colour="black", size=14),
         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
-        axis.text.x=element_text(colour="black", size=12),
-        axis.text.y = element_text(colour="black", size=12),
+        axis.text.x=element_text(colour="black", size=14),
+        axis.text.y = element_text(colour="black", size=14),
         legend.position = "none") +
   scale_y_continuous(expand = c(0,0), limits = c(0, 2.8), breaks = c(0, 0.5, 1.0, 1.5, 2.0, 2.5) ) +
   ylab("Domatia Radius (mm)") +
+  xlab("Genotype") +
   geom_signif(
-    comparisons = list(c("588710", "588711")),
+    comparisons = list(c("Little", "Big")),
     test= t.test,
     map_signif_level = TRUE, textsize = 6,
     y_position = 2.5)
