@@ -1,6 +1,6 @@
 # Set working directory and load necessary packages
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library("topGO")
 library(dplyr)
@@ -128,3 +128,7 @@ data11 <- data[, c(1,9:15)]
 final <- data[, c(1,6,8,13,15)]
 colnames(final) <- c("GO Term - Biological Process", "588710 Fold Change", "588710 FDR P-value",
                      "588711 Fold Change", "588711 FDR P-value")
+
+sign10 <- df10[df10$upload_1..FDR..588710<0.05 ,]
+sign11 <- df11[df11$upload_1..FDR..588711<0.05 ,]
+sign.overlap <-merge(sign10, sign11, by.x="GO.biological.process.complete.588710", by.y="GO.biological.process.complete.588711")
