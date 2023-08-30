@@ -30,8 +30,8 @@ gen2.fin <- cbind(gen2.temp2, gen2.temp3)
 colnames(gen2.fin) <- c("Radius", "Density", "Genotype")
 
 data <- rbind(gen1.fin, gen2.fin)
-data$Genotype <- gsub("588710", "Little", data$Genotype)
-data$Genotype <- gsub("588711", "Big", data$Genotype)
+#data$Genotype <- gsub("588710", "Little", data$Genotype)
+#data$Genotype <- gsub("588711", "Big", data$Genotype)
 data$Genotype <- as.factor(data$Genotype)
 
 # Plot density as box and whisker plot
@@ -47,15 +47,16 @@ gen2.counts<-gen2.counts[order(gen2.counts$Var1),]
 
 counts <- rbind(gen1.counts, gen2.counts)
 colnames(counts) <- c("Density", "Counts", "Genotype")
-counts$Genotype <- gsub("588710", "Little", counts$Genotype)
-counts$Genotype <- gsub("588711", "Big", counts$Genotype)
+#counts$Genotype <- gsub("588710", "Little", counts$Genotype)
+#counts$Genotype <- gsub("588711", "Big", counts$Genotype)
 
 col.711 <- c("#024F4A")
 col.710 <- c("#05B384")
 
-ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
+b <- ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
   geom_bar(stat='identity', position = 'dodge') +
   theme_classic() +
+  scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
   theme(axis.title.x=element_text(colour="black", size=14),
         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
         axis.text.x=element_text(colour="black", size=14),
@@ -63,14 +64,13 @@ ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) +
         legend.position = "right",
         legend.text = element_text(size = 14),
         legend.title = element_text(size=14)) +
-  scale_fill_manual(values = c(col.710, col.711), limits = c("Little", "Big")) +
   scale_y_continuous(expand = c(0,0))
 
 # Plot radius as a violin plot
-ggplot(data, aes(x=factor(Genotype, levels = c('Little', 'Big')), y=Radius, fill=Genotype)) + 
+a <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Radius, fill=Genotype)) + 
   geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme_classic() +
-  scale_fill_manual(values = c(col.710, col.711), limits = c("Little", "Big")) +
+  scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
   theme(axis.title.x=element_text(colour="black", size=14),
         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
         axis.text.x=element_text(colour="black", size=14),
@@ -80,11 +80,16 @@ ggplot(data, aes(x=factor(Genotype, levels = c('Little', 'Big')), y=Radius, fill
   ylab("Domatia Radius (mm)") +
   xlab("Genotype") +
   geom_signif(
-    comparisons = list(c("Little", "Big")),
+    comparisons = list(c('588710', '588711')),
     test= t.test,
     map_signif_level = TRUE, textsize = 6,
-    y_position = 2.5)
+    y_position = 2.5) +
+  stat_summary(fun = "mean",
+               geom = "crossbar", 
+               width = 1,
+               colour = "black")
   
+plot_grid(a, NULL, b, nrow=1, ncol=3, rel_widths = c(1.6,0.45,2))
 
 # # Outdated - might want to delete
 # # Plot density against radius to see if anything stands out
