@@ -376,16 +376,16 @@ temp6 <- temp2[rownames(temp2)%in%rownames(geno2.final),]
 dom.both <- DOM.710.final[rownames(DOM.710.final)%in%rownames(DOM.711.final),]
 
 # DIFFERENT VERSION BELOW, READING IN FILES ALREADY MADE
-concon <- read.csv("DE_genes_Control_710_v_711.csv")
+concon <- read.csv("differentially_expressed_genes/DE_genes_Control_710_v_711.csv")
 row.names(concon) <- concon$Gene
 
-domdom <- read.csv("DE_genes_Domatia_710_v_711.csv")
+domdom <- read.csv("differentially_expressed_genes/DE_genes_Domatia_710_v_711.csv")
 row.names(domdom) <- domdom$Gene
 
-domcon.710 <- read.csv("DE_genes_Domatia_V_Leaf_588710.csv")
+domcon.710 <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588710.csv")
 row.names(domcon.710) <- domcon.710$Gene
 
-domcon.711 <- read.csv("DE_genes_Domatia_V_Leaf_588711.csv")
+domcon.711 <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588711.csv")
 row.names(domcon.711) <- domcon.711$Gene
 
 # Shared between domatia and domatia

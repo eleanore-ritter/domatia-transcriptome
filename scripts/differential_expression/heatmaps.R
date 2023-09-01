@@ -164,3 +164,30 @@ temp1 <- t(apply(logt, 1, scale))
 col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
                     colorRampPalette(c("blue","white","red"))(256))
 Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
+
+######################## MAKE FIGURE 8 ########################
+dom.genes <- c("LOC117934313",
+               "LOC117912178",
+               "LOC117912293",
+               "LOC117933133",
+               "LOC117930032",
+               "LOC117906993",
+               "LOC117927833",
+               "LOC117904283",
+               "LOC117922028") #Still need to add random genes
+
+genes.df <- DOM.GENO.final[DOM.GENO.final$Gene %in% dom.genes,]
+#genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
+genes.df1 <- genes.df[order(match(genes.df$Gene,dom.genes)),]
+genes.df2 <- genes.df1[c(25,26,27,28,29,30,31,32,33,34, 35, 36)] # Modify if code above is run
+colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
+                         "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
+                         "588711 1 Control", "588711 2 Control", "588711 3 Control",
+                         "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
+
+genes.mat <- as.matrix(genes.df2)
+logt <- log(genes.mat+0.01)
+temp1 <- t(apply(logt, 1, scale))
+col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
+                    colorRampPalette(c("blue","white","red"))(256))
+Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
