@@ -1,7 +1,7 @@
 # Set working directory and load necessary packages
 
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(DESeq2)
 library(dplyr)
@@ -178,34 +178,35 @@ col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
                     colorRampPalette(c("blue","white","red"))(256))
 Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
 
-column_split = rep("Control 588710", 12)
-column_split[4:6] = "Domatia 588710"
-column_split[7:9] = "Control 588711"
-column_split[10:12] = "Domatia 588711"
+column_split = rep("Control\n 588710", 12)
+column_split[4:6] = "Domatia\n 588710"
+column_split[7:9] = "Control\n 588711"
+column_split[10:12] = "Domatia\n 588711"
 
 row_split = rep("Auxin synthases", 20)
 row_split[3:5] = "Auxin transporters"
 row_split[6:12] = "Transcriptional regulation\n via auxin signaling"
-row_split[13:20] = "Genes upregulated by auxin"
+row_split[13:20] = "Genes upregulated\n by auxin"
 
 #Legend to right
-Heatmap(temp1, 
-        cluster_rows = FALSE, 
-        cluster_columns = FALSE,
-        col=col_fun,
-        heatmap_legend_param = list(
-          title = "Z-Score", 
-          border = "black", 
-          legend_height = unit(6, "cm"),
-          title_gp = gpar(size = 14, fontface = "bold")),
-        column_split = factor(column_split, levels = c("Control 588710", "Domatia 588710", "Control 588711", "Domatia 588711")),
-        cluster_column_slices = FALSE,
-        column_gap = unit(2, "mm"),
-        border = TRUE,
-        row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated by auxin")),
-        row_title_rot = 0,
-        row_gap = unit(2, "mm")
-)
+# Heatmap(temp1, 
+#         cluster_rows = FALSE, 
+#         cluster_columns = FALSE,
+#         col=col_fun,
+#         heatmap_legend_param = list(
+#           title = "Z-Score", 
+#           border = "black", 
+#           legend_height = unit(6, "cm"),
+#           title_gp = gpar(size = 14, fontface = "bold")),
+#         column_split = factor(column_split, levels = c("Control 588710", "Domatia 588710", "Control 588711", "Domatia 588711")),
+#         cluster_column_slices = FALSE,
+#         column_gap = unit(2, "mm"),
+#         border = TRUE,
+#         row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
+#         row_title_rot = 0,
+#         row_gap = unit(2, "mm")
+# )
+
 #Legend on bottom
 htmp = Heatmap(temp1, 
         cluster_rows = FALSE, 
@@ -217,11 +218,11 @@ htmp = Heatmap(temp1,
           legend_width = unit(6, "cm"),
           title_gp = gpar(size = 14, fontface = "bold"),
           direction = "horizontal"),
-        column_split = factor(column_split, levels = c("Control 588710", "Domatia 588710", "Control 588711", "Domatia 588711")),
+        column_split = factor(column_split, levels = c("Control\n 588710", "Domatia\n 588710", "Control\n 588711", "Domatia\n 588711")),
         cluster_column_slices = FALSE,
         column_gap = unit(2, "mm"),
         border = TRUE,
-        row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated by auxin")),
+        row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
         row_title_rot = 0,
         row_gap = unit(2, "mm"),
         row_names_gp = gpar(fontsize = 11)
