@@ -459,7 +459,12 @@ biotic.genes <- c("AT1G12220", #NBS-LRR class
                   "AT5G17680",
                   "AT5G36930",
                   "AT3G61460", #BRH1 #Chitin
-                  "AT5G63380", #JA Biosynthesis #JA signaling
+                  "AT5G63380", #JA and methyljasmonate biosynthesis #JA signaling
+                  "AT1G20510",
+                  "AT4G08850",
+                  "AT1G19640",
+                  "AT2G41370", #JA signaling
+                  "AT1G56650",
                   
 )
 
