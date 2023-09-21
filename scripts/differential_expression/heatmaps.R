@@ -1,7 +1,7 @@
 # Set working directory and load necessary packages
 
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(DESeq2)
 library(dplyr)
@@ -463,37 +463,193 @@ biotic.genes <- c("AT1G12220", #NBS-LRR class
                   "AT1G20510",
                   "AT4G08850",
                   "AT1G19640",
-                  "AT2G41370", #JA signaling
-                  "AT1G56650",
-                  
-)
+                  "AT2G41370", #JA mediated signaling pathway
+                  "AT1G56650", #excluding response to JA for now - might be a good supplement figure
+                  "AT4G16740", #Terpene and volatile biosynthesis
+                  "AT5G23960", 
+                  "AT3G25810",
+                  "AT3G11480")
 
-######################## MAKE FIGURE 8 ########################
-dom.genes <- c("LOC117934313",
-               "LOC117912178",
-               "LOC117912293",
-               "LOC117933133",
-               "LOC117930032",
-               "LOC117906993",
-               "LOC117927833",
-               "LOC117904283",
-               "LOC117922028") #Still need to add random genes
-
-genes.df <- DOM.GENO.final[DOM.GENO.final$Gene %in% dom.genes,]
-#genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
-genes.df1 <- genes.df[order(match(genes.df$Gene,dom.genes)),]
-genes.df2 <- genes.df1[c(25,26,27,28,29,30,31,32,33,34, 35, 36)] # Modify if code above is run
+genes.df <- domcon.710[domcon.710$ensembl_gene_id %in% biotic.genes,]
+genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
+genes.df1 <- genes.df1[order(match(genes.df1$ensembl_gene_id, biotic.genes)),]
+genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
 colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
                          "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
+
+rownames(genes.df2) <- c("Probable disease resistance protein At1g61300",
+                         "Disease resistance protein RPV1-like (1)",
+                         "Disease resistance protein RPV1-like (2)",
+                         "disease resistance protein RPV1-like (3)",
+                         "Disease resistance protein RUN1-like (1)",
+                         "Disease resistance protein RUN1-like (2)",
+                         "E3 ubiquitin-protein ligase RHA1B-like",
+                         "4-coumarate--CoA ligase-like 9",
+                         "4-coumarate--CoA ligase-like 5 (1)",
+                         "4-coumarate--CoA ligase-like 5 (2)",
+                         "MDIS1-interacting receptor like kinase 2-like",
+                         "Salicylate carboxymethyltransferase-like (1)",
+                         "Salicylate carboxymethyltransferase-like (2)",
+                         "BTB/POZ domain and ankyrin repeat-containing protein NOOT2",
+                         "Transcription factor MYB114-like",
+                         "Probable terpene synthase 9 (1)",
+                         "(-)-germacrene D synthase-like",
+                         "Probable terpene synthase 9 (2)",
+                         "Salicylate carboxymethyltransferase-like (3)",
+                         "7-methylxanthosine synthase 1-like",
+                         "Salicylate carboxymethyltransferase-like (4)"
+                         )
+
+genes.mat <- as.matrix(genes.df2)
+
+temp1 <- t(apply(genes.df2, 1, scale))
+col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
+                    colorRampPalette(c("blue","white","red"))(256))
+Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
+
+column_split = rep("Control\n 588710", 12)
+column_split[4:6] = "Domatia\n 588710"
+column_split[7:9] = "Control\n 588711"
+column_split[10:12] = "Domatia\n 588711"
+
+row_split = rep("NBS-LRR class", 21)
+row_split[7] = "Chitin responsive"
+row_split[8:14] = "JA and methyljasmonate\n biosynthesis"
+row_split[15:16] = "JA-mediated\n signaling pathway"
+row_split[17:21] = "Terpene and\n volatile biosynthesis"
+
+#Legend on bottom
+htmp = Heatmap(temp1, 
+               cluster_rows = FALSE, 
+               cluster_columns = FALSE,
+               col=col_fun,
+               heatmap_legend_param = list(
+                 title = "Z-Score", 
+                 border = "black", 
+                 legend_width = unit(6, "cm"),
+                 title_gp = gpar(size = 12, fontface = "bold"),
+                 direction = "horizontal"),
+               column_split = factor(column_split, levels = c("Control\n 588710", "Domatia\n 588710", "Control\n 588711", "Domatia\n 588711")),
+               cluster_column_slices = FALSE,
+               column_gap = unit(2, "mm"),
+               border = TRUE,
+               row_split = factor(row_split, levels = c("NBS-LRR class", "Chitin responsive", 
+                                                        "JA and methyljasmonate\n biosynthesis",
+                                                        "JA-mediated\n signaling pathway",
+                                                        "Terpene and\n volatile biosynthesis")),
+               row_title_rot = 0,
+               row_gap = unit(2, "mm"),
+               row_names_max_width = max_text_width(
+                 rownames(temp1), 
+                 gp = gpar(fontsize = 10)
+               ),
+               row_names_gp = gpar(fontsize = 10),
+               row_title_gp = gpar(fontsize = 12, fontface = "bold")
+)
+
+
+draw(htmp, heatmap_legend_side="bottom")
+
+######################## MAKE FIGURE 8 ########################
+dom.genes <- c("LOC117934313", #Auxin
+               "LOC117912178",
+               "LOC117912293",
+               "LOC117933133", #Cell wall 
+               "LOC117930032",
+               "LOC117906993",
+               "LOC117927833", #Disease resistance
+               "LOC117904283", #Synthesis and transport of macromolecules
+               "LOC117922028",
+               "LOC117915398", #Miscellaneous
+               "LOC117923968",
+               "LOC117927588",
+               "LOC117921084",
+               "LOC117927721",
+               "LOC117910441",
+               "LOC117929261",
+               "LOC117918954",
+               "LOC117923426",
+               "LOC117912434") 
+
+genes.df <- domdom[domdom$Gene %in% dom.genes,]
+#genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
+genes.df1 <- genes.df[order(match(genes.df$Gene,dom.genes)),]
+genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
+colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
+                         "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
+                         "588711 1 Control", "588711 2 Control", "588711 3 Control",
+                         "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
+
+rownames(genes.df2) <- c("Stilbene synthase 3-like",
+                         "PIN-LIKES 3-like",
+                         "2-oxoglutarate-dependent dioxygenase DAO-like",
+                         "Anthocyanidin 3-O-glucosyltransferase 5-like",
+                         "Cellulose synthase-like protein G3",
+                         "Uncharacterized LOC117906993",
+                         "Disease resistance protein RPP8-like",
+                         "Organic cation/carnitine transporter 1",
+                         "Beta-amyrin synthase",
+                         "Uncharacterized LOC117915398",
+                         "Uncharacterized LOC117923968",
+                         "Uncharacterized LOC117927588",
+                         "Heterogeneous nuclear ribonucleoprotein Q",
+                         "GDSL esterase/lipase At5g03610-like",
+                         "Uncharacterized LOC117910441",
+                         "Pentatricopeptide repeat-containing protein At5g46100-like",
+                         "Cyclin-D5-1-like",
+                         "Cytochrome b561 domain-containing protein At4g18260",
+                         "Uncharacterized LOC117912434")
 
 genes.mat <- as.matrix(genes.df2)
 logt <- log(genes.mat+0.01)
 temp1 <- t(apply(logt, 1, scale))
 col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
                     colorRampPalette(c("blue","white","red"))(256))
-Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
+
+column_split = rep("Control\n 588710", 12)
+column_split[4:6] = "Domatia\n 588710"
+column_split[7:9] = "Control\n 588711"
+column_split[10:12] = "Domatia\n 588711"
+
+row_split = rep("Auxin", 19)
+row_split[4:6] = "Cell wall"
+row_split[7] = "Disease resistance"
+row_split[8:9] = "Synthesis and transport\n of macromolecules"
+row_split[10:19] = "Miscellaneous"
+
+#Legend on bottom
+htmp = Heatmap(temp1, 
+               cluster_rows = FALSE, 
+               cluster_columns = FALSE,
+               col=col_fun,
+               heatmap_legend_param = list(
+                 title = "Z-Score", 
+                 border = "black", 
+                 legend_width = unit(6, "cm"),
+                 title_gp = gpar(size = 12, fontface = "bold"),
+                 direction = "horizontal"),
+               column_split = factor(column_split, levels = c("Control\n 588710", "Domatia\n 588710", "Control\n 588711", "Domatia\n 588711")),
+               cluster_column_slices = FALSE,
+               column_gap = unit(2, "mm"),
+               border = TRUE,
+               row_split = factor(row_split, levels = c("Auxin", "Cell wall", 
+                                                        "Disease resistance",
+                                                        "Synthesis and transport\n of macromolecules",
+                                                        "Miscellaneous")),
+               row_title_rot = 0,
+               row_gap = unit(2, "mm"),
+               row_names_max_width = max_text_width(
+                 rownames(temp1), 
+                 gp = gpar(fontsize = 10)
+               ),
+               row_names_gp = gpar(fontsize = 10),
+               row_title_gp = gpar(fontsize = 12, fontface = "bold")
+)
+
+
+draw(htmp, heatmap_legend_side="bottom")
 
 ####################### GETTING VRIPARIA PRODUCT NAMES ########################
 gff.id <- read.csv("vriparia-genomic-id.csv", sep=";", header = FALSE)

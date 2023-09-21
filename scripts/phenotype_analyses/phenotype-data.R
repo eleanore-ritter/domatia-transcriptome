@@ -1,6 +1,6 @@
 # Set working directory and load necessary packages
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(ggplot2)
 library(cowplot)
@@ -66,6 +66,28 @@ b <- ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) +
         legend.title = element_text(size=14)) +
   scale_y_continuous(expand = c(0,0))
 
+b <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Density, fill=Genotype)) + 
+  geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +
+  theme_classic() +
+  scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
+  theme(axis.title.x=element_text(colour="black", size=14),
+        axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.text.x=element_text(colour="black", size=14),
+        axis.text.y = element_text(colour="black", size=14),
+        legend.position = "none") +
+#  scale_y_continuous(expand = c(0,0), limits = c(0, 2.8), breaks = c(0, 0.5, 1.0, 1.5, 2.0, 2.5) ) +
+  ylab("Domatia Density") +
+  xlab("Genotype") +
+  geom_signif(
+    comparisons = list(c('588710', '588711')),
+    test= t.test,
+    map_signif_level = TRUE, textsize = 6,
+    y_position = 10) +
+  stat_summary(fun = "mean",
+               geom = "crossbar", 
+               width = 1,
+               colour = "black")
+
 # Plot radius as a violin plot
 a <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Radius, fill=Genotype)) + 
   geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +
@@ -91,43 +113,42 @@ a <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Radi
   
 plot_grid(a, NULL, b, nrow=1, ncol=3, rel_widths = c(1.6,0.45,2))
 
-# # Outdated - might want to delete
-# # Plot density against radius to see if anything stands out
-# col.710 <- c("#E63946")
-# col.711 <- c("#457B9D")
-# 
-# p1 <- ggplot(data, aes(x = density, y = radius)) +
-#   geom_point(aes(color = genotype), size=2, shape=19) +
-#   scale_color_manual(values = c(col.710, col.711)) +
-#   theme_classic() +
-#   labs(x = "Density 1", y = "Dry Mass (mg)") +
-#   theme(axis.title.x=element_text(colour="black", size=12),
-#         axis.title.y=element_text(colour="black", size=12),
-#         axis.text.x=element_text(colour="black", size=10),
-#         axis.text.y = element_text(colour="black", size=10),
-#         legend.position = "none")
-# 
-# p2 <- ggplot(data, aes(x = radius_1, y = dry_mass..mg.)) +
-#   geom_point(aes(color = genotype), size = 2, shape=19) +
-#   scale_color_manual(values = c(col.710, col.711)) +
-#   theme_classic()+
-#   labs(x = "Radius 1", y = "Dry Mass (mg)") +
-#   theme(axis.title.x=element_text(colour="black", size=12),
-#         axis.title.y=element_text(colour="black", size=12),
-#         axis.text.x=element_text(colour="black", size=10),
-#         axis.text.y = element_text(colour="black", size=10),
-#         legend.position = "right",
-#         legend.justification = "center",
-#         legend.title = element_blank(),
-#         legend.key.size = unit(0.25, "cm"),
-#         legend.text = element_text(colour="black", size=12))
-# 
-# plot_grid(p1, p2, nrow=1, ncol=2, rel_widths = c(1.6,2))
+################### IN PROGRESS ##################
+# Run t-test
+a = data[data$Genotype=="588710",2]
+b = data[data$Genotype=="588711",2]
 
-# ## Run t-test
-# a = na.omit(data[data$genotype==588710,])
-# b = na.omit(data[data$genotype==588711,])
-# 
-# ttest <- t.test(a,b) #Need to fix this, a ttest is probably not best!
+ttest1 <- t.test(a,b)
 
+ # Outdated - might want to delete
+ # Plot density against radius to see if anything stands out
+ col.710 <- c("#E63946")
+ col.711 <- c("#457B9D")
 
+ p1 <- ggplot(data, aes(x = Density, y = Radius)) +
+   geom_point(aes(color = Genotype), size=2, shape=19) +
+   scale_color_manual(values = c(col.710, col.711)) +
+   theme_classic() +
+   labs(x = "Density 1", y = "Radius (mm)") +
+   theme(axis.title.x=element_text(colour="black", size=12),
+         axis.title.y=element_text(colour="black", size=12),
+         axis.text.x=element_text(colour="black", size=10),
+         axis.text.y = element_text(colour="black", size=10),
+         legend.position = "none")
+
+ p2 <- ggplot(raw.data, aes(x = density_1, y = dry_mass..mg.)) +
+   geom_point(aes(color = genotype), size = 2, shape=19) +
+   scale_color_manual(values = c(col.710, col.711)) +
+   theme_classic()+
+   labs(x = "Radius 1", y = "Dry Mass (mg)") +
+   theme(axis.title.x=element_text(colour="black", size=12),
+         axis.title.y=element_text(colour="black", size=12),
+         axis.text.x=element_text(colour="black", size=10),
+         axis.text.y = element_text(colour="black", size=10),
+         legend.position = "right",
+         legend.justification = "center",
+         legend.title = element_blank(),
+         legend.key.size = unit(0.25, "cm"),
+         legend.text = element_text(colour="black", size=12))
+
+ plot_grid(p1, p2, nrow=1, ncol=2, rel_widths = c(1.6,2))
