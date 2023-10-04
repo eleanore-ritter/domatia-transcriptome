@@ -1,12 +1,13 @@
 # Set working directory and load necessary packages
-#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(ggplot2)
 library(cowplot)
 library(ggsignif)
 library(tidyr)
 
+########################## SET UP DATA IN R ##########################
 # Load raw data
 raw.data <- read.csv("domatia_trichomes_2022_final.csv")
 
@@ -50,22 +51,26 @@ colnames(counts) <- c("Density", "Counts", "Genotype")
 #counts$Genotype <- gsub("588710", "Little", counts$Genotype)
 #counts$Genotype <- gsub("588711", "Big", counts$Genotype)
 
+########################## PLOT PHENOTYPE DATA ##########################
+
 col.711 <- c("#024F4A")
 col.710 <- c("#05B384")
 
-b <- ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
-  geom_bar(stat='identity', position = 'dodge') +
-  theme_classic() +
-  scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
-  theme(axis.title.x=element_text(colour="black", size=14),
-        axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
-        axis.text.x=element_text(colour="black", size=14),
-        axis.text.y = element_text(colour="black", size=14),
-        legend.position = "right",
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size=14)) +
-  scale_y_continuous(expand = c(0,0))
+#Plotting density as a a bar plot
+# b <- ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
+#   geom_bar(stat='identity', position = 'dodge') +
+#   theme_classic() +
+#   scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
+#   theme(axis.title.x=element_text(colour="black", size=14),
+#         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
+#         axis.text.x=element_text(colour="black", size=14),
+#         axis.text.y = element_text(colour="black", size=14),
+#         legend.position = "right",
+#         legend.text = element_text(size = 14),
+#         legend.title = element_text(size=14)) +
+#   scale_y_continuous(expand = c(0,0))
 
+#Plotting density as a violiin plot
 b <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Density, fill=Genotype)) + 
   geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +
   theme_classic() +
@@ -75,14 +80,14 @@ b <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Dens
         axis.text.x=element_text(colour="black", size=14),
         axis.text.y = element_text(colour="black", size=14),
         legend.position = "none") +
-#  scale_y_continuous(expand = c(0,0), limits = c(0, 2.8), breaks = c(0, 0.5, 1.0, 1.5, 2.0, 2.5) ) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 10.5), breaks = c(0, 1, 3, 5, 7, 9) ) +
   ylab("Domatia Density") +
   xlab("Genotype") +
   geom_signif(
     comparisons = list(c('588710', '588711')),
     test= t.test,
     map_signif_level = TRUE, textsize = 6,
-    y_position = 10) +
+    y_position = 9.5) +
   stat_summary(fun = "mean",
                geom = "crossbar", 
                width = 1,
@@ -111,44 +116,15 @@ a <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Radi
                width = 1,
                colour = "black")
   
-plot_grid(a, NULL, b, nrow=1, ncol=3, rel_widths = c(1.6,0.45,2))
+plot_grid(a, NULL, b, NULL, nrow=1, ncol=4, rel_widths = c(1,0.125,1, 0.1))
 
-################### IN PROGRESS ##################
-# Run t-test
-a = data[data$Genotype=="588710",2]
-b = data[data$Genotype=="588711",2]
-
+########################## STATS ##########################
+# Run t-test on radius data
+a = data[data$Genotype=="588710",1]
+b = data[data$Genotype=="588711",1]
 ttest1 <- t.test(a,b)
 
- # Outdated - might want to delete
- # Plot density against radius to see if anything stands out
- col.710 <- c("#E63946")
- col.711 <- c("#457B9D")
-
- p1 <- ggplot(data, aes(x = Density, y = Radius)) +
-   geom_point(aes(color = Genotype), size=2, shape=19) +
-   scale_color_manual(values = c(col.710, col.711)) +
-   theme_classic() +
-   labs(x = "Density 1", y = "Radius (mm)") +
-   theme(axis.title.x=element_text(colour="black", size=12),
-         axis.title.y=element_text(colour="black", size=12),
-         axis.text.x=element_text(colour="black", size=10),
-         axis.text.y = element_text(colour="black", size=10),
-         legend.position = "none")
-
- p2 <- ggplot(raw.data, aes(x = density_1, y = dry_mass..mg.)) +
-   geom_point(aes(color = genotype), size = 2, shape=19) +
-   scale_color_manual(values = c(col.710, col.711)) +
-   theme_classic()+
-   labs(x = "Radius 1", y = "Dry Mass (mg)") +
-   theme(axis.title.x=element_text(colour="black", size=12),
-         axis.title.y=element_text(colour="black", size=12),
-         axis.text.x=element_text(colour="black", size=10),
-         axis.text.y = element_text(colour="black", size=10),
-         legend.position = "right",
-         legend.justification = "center",
-         legend.title = element_blank(),
-         legend.key.size = unit(0.25, "cm"),
-         legend.text = element_text(colour="black", size=12))
-
- plot_grid(p1, p2, nrow=1, ncol=2, rel_widths = c(1.6,2))
+# Run Mann-Whitney test on density data (which are discrete and not normally distributed)
+c = data[data$Genotype=="588710",2]
+d = data[data$Genotype=="588711",2]
+wilcox1 <- wilcox.test(c, d, alternative = "less")

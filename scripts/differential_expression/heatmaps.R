@@ -1,7 +1,7 @@
 # Set working directory and load necessary packages
 
-#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(DESeq2)
 library(dplyr)
@@ -147,7 +147,7 @@ rownames(genes.df2) <- c("Probable xyloglucan endotransglucosylase/\nhydrolase p
                          "Probable xyloglucan endotransglucosylase/\nhydrolase protein 10",
                          "Xyloglucan endotransglucosylase/\nhydrolase 2-like",
                          "Pectinesterase",
-                         "Glucuronoxylan\n4-O-methyltransferase 3",
+                         "Glucuronoxylan 4-O-methyltransferase 3",
                          "Probable pectinesterase 53",
                          "Pectate lyase-like",
                          "Probable pectate lyase 5",
@@ -157,7 +157,7 @@ rownames(genes.df2) <- c("Probable xyloglucan endotransglucosylase/\nhydrolase p
                          "Laccase-17-like (3)",
                          "Laccase-17-like (4)",
                          "Laccase-17-like (5)",
-                         "Hydroquinone\nglucosyltransferase-like")
+                         "Hydroquinone glucosyltransferase-like")
 
 genes.mat <- as.matrix(genes.df2)
 
@@ -439,7 +439,7 @@ htmp = Heatmap(temp1,
           title = "Z-Score", 
           border = "black", 
           legend_width = unit(6, "cm"),
-          title_gp = gpar(size = 14, fontface = "bold"),
+          title_gp = gpar(size = 12, fontface = "bold"),
           direction = "horizontal"),
         column_split = factor(column_split, levels = c("Control\n 588710", "Domatia\n 588710", "Control\n 588711", "Domatia\n 588711")),
         cluster_column_slices = FALSE,
@@ -448,7 +448,12 @@ htmp = Heatmap(temp1,
         row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
         row_title_rot = 0,
         row_gap = unit(2, "mm"),
-        row_names_gp = gpar(fontsize = 11)
+        row_names_max_width = max_text_width(
+          rownames(temp1), 
+          gp = gpar(fontsize = 10)
+        ),
+        row_names_gp = gpar(fontsize = 10),
+        row_title_gp = gpar(fontsize = 12, fontface = "bold")
 )
 
 draw(htmp, heatmap_legend_side="bottom")
@@ -479,7 +484,7 @@ colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Contr
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
 
-rownames(genes.df2) <- c("Probable disease resistance protein At1g61300",
+rownames(genes.df2) <- c("Probable disease resistance protein\nAt1g61300",
                          "Disease resistance protein RPV1-like (1)",
                          "Disease resistance protein RPV1-like (2)",
                          "disease resistance protein RPV1-like (3)",
@@ -492,7 +497,7 @@ rownames(genes.df2) <- c("Probable disease resistance protein At1g61300",
                          "MDIS1-interacting receptor like kinase 2-like",
                          "Salicylate carboxymethyltransferase-like (1)",
                          "Salicylate carboxymethyltransferase-like (2)",
-                         "BTB/POZ domain and ankyrin repeat-containing protein NOOT2",
+                         "BTB/POZ domain and ankyrin\nrepeat-containing protein NOOT2",
                          "Transcription factor MYB114-like",
                          "Probable terpene synthase 9 (1)",
                          "(-)-germacrene D synthase-like",
@@ -552,7 +557,7 @@ htmp = Heatmap(temp1,
 
 draw(htmp, heatmap_legend_side="bottom")
 
-######################## MAKE FIGURE 8 ########################
+######################## MAKE FIGURE 7 ########################
 dom.genes <- c("LOC117934313", #Auxin
                "LOC117912178",
                "LOC117912293",
@@ -597,9 +602,9 @@ rownames(genes.df2) <- c("Stilbene synthase 3-like",
                          "Heterogeneous nuclear ribonucleoprotein Q",
                          "GDSL esterase/lipase At5g03610-like",
                          "Uncharacterized LOC117910441",
-                         "Pentatricopeptide repeat-containing protein At5g46100-like",
+                         "Pentatricopeptide repeat-containing\nprotein At5g46100-like",
                          "Cyclin-D5-1-like",
-                         "Cytochrome b561 domain-containing protein At4g18260",
+                         "Cytochrome b561 domain-containing\nprotein At4g18260",
                          "Uncharacterized LOC117912434")
 
 genes.mat <- as.matrix(genes.df2)
