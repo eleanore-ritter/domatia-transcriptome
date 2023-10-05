@@ -146,8 +146,8 @@ colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Contr
 rownames(genes.df2) <- c("Probable xyloglucan endotransglucosylase/\nhydrolase protein B",
                          "Probable xyloglucan endotransglucosylase/\nhydrolase protein 10",
                          "Xyloglucan endotransglucosylase/\nhydrolase 2-like",
-                         "Pectinesterase",
                          "Glucuronoxylan 4-O-methyltransferase 3",
+                         "Pectinesterase",
                          "Probable pectinesterase 53",
                          "Pectate lyase-like",
                          "Probable pectate lyase 5",
@@ -180,7 +180,7 @@ column_split[10:12] = "Domatia\n 588711"
 
 row_split = rep("Xyloglucan\nbiosynthesis\nand modification", 15)
 row_split[4] = "Xylan biosynthesis\n and modification"
-row_split[6:8] = "Pectin biosynthesis\n and modification"
+row_split[5:8] = "Pectin biosynthesis\n and modification"
 row_split[9:15] = "Lignin biosynthesis\n and modification"
 
 #Legend to right
@@ -675,5 +675,17 @@ dict <- as.data.frame(unique(cbind(genes,products)))
 # temp1 <- na.omit(dict[dict$genes %in% dom.genes,])
 # temp2 <- temp1[!duplicated(temp1$genes),]
 
+# For overlap with genes predefined for figures above
 temp1 <- na.omit(dict[dict$genes %in% rownames(genes.df2),])
 temp2 <- temp1[!duplicated(temp1$genes),]
+
+# For overlap with complete gene lists
+temp3 <- merge(dict, domcon.710, by.x="genes", by.y="Gene", all = FALSE)
+temp4 <- temp3 %>%
+  group_by(genes) %>%
+  slice(which.max(!is.na(products)))
+
+temp5 <- merge(dict, domcon.711, by.x="genes", by.y="Gene", all = FALSE)
+temp6 <- temp5 %>%
+  group_by(genes) %>%
+  slice(which.max(!is.na(products)))
