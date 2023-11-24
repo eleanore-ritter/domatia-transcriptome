@@ -128,10 +128,10 @@ df$y21 <- coords.df$V42 #Ugly, but done
 
 ########################## 4A RESTRUCTURING RAW DATA FOR CALCULATIONS ##########################
 #Make empty dataframe
-df <- data.frame(matrix(ncol = 45, nrow = 275))
+df <- data.frame(matrix(ncol = 44, nrow = 20))
 
 #Rename columns
-cn <- c("sample", "shoot", "node", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4",
+cn <- c("sample", "node", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4",
         "x5", "y5", "x6", "y6", "x7", "y7", "x8", "y8", "x9", "y9", "x10", "y10",
         "x11", "y11", "x12", "y12", "x13", "y13", "x14", "y14", "x15", "y15",
         "x16", "y16", "x17", "y17", "x18", "y18", "x19", "y19", "x20", "y20",
@@ -139,19 +139,18 @@ cn <- c("sample", "shoot", "node", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4
 colnames(df) <- cn
 
 #Get lists for sample, shoot, and node
-sample <- gsub( "-.*", "", files)
-shoot <- substring(files,5,5)
-tmpnode <- gsub( ".*coords", "", files)
-node <- gsub(".txt", "", tmpnode)
-rm(tmpnode)
+#Add columns needed to dataframe
+
 
 #Modify coordinates to be shape needed (wide and not long) and add all data to datafram
 tmp<-matrix(aperm(coords,c(3,2,1)),dim(coords)[3],prod(dim(coords)[1:2]))
 df<-do.call(data.frame,setNames(asplit(tmp,2),paste0(c('x','y'),rep(1:dim(coords)[1],each=2))))
-df$sample <- sample
-df$shoot <- shoot
-df$node <- node
-df<-df[,c('sample','shoot','node',paste0(c('x','y'),rep(1:dim(coords)[1],each=2)))]
+df$sample <- gsub( "-.*", "", files)
+df$shoot <- substr(files, 8, 8)
+tmpnode <- gsub( ".*-", "", files)
+df$node <- gsub(".txt", "", tmpnode)
+rm(tmpnode)
+df<-df[,c('sample','shoot', 'node',paste0(c('x','y'),rep(1:dim(coords)[1],each=2)))]
 
 ########################## 4B CALCULATE TOTAL LEAF AREA ##########################
 # MAKE SURE YOU ARE USING RAW DATA!
