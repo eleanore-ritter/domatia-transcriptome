@@ -28,9 +28,9 @@ degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_5887
 # Modify DE gene list
 final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
 
-# For only upregulated genes
-degenes2 <- degenes[degenes$log2FoldChange>0 ,]
-final<-cbind(degenes2,all[match(degenes2$Gene,all$gene),])
+# # For only upregulated genes
+# degenes2 <- degenes[degenes$log2FoldChange>0 ,]
+# final<-cbind(degenes2,all[match(degenes2$Gene,all$gene),])
 
 # Copy Arabidopsis orthologs
 writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))
@@ -57,6 +57,10 @@ degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_5887
 
 # Modify DE gene list
 final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
+
+# For only upregulated genes
+degenes2 <- degenes[degenes$log2FoldChange>0 ,]
+final<-cbind(degenes2,all[match(degenes2$Gene,all$gene),])
 
 # Copy Arabidopsis orthologs
 writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))  
