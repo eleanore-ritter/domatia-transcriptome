@@ -1,6 +1,6 @@
 # Set working directory and load necessary packages
-#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(dplyr)
 library(tidyr)
@@ -42,3 +42,12 @@ all.lignin710 <- merge(lignin710, dom710, by.x="V2",by.y="ensembl_gene_id")
 lignin711 <- read.csv("Nov-2023-GO-terms/588711-upregulated-lignin.txt",
                       "\t", skip = 1, header = FALSE)
 all.lignin711 <- merge(lignin711, dom711, by.x="V2",by.y="ensembl_gene_id")
+
+# Read in Arabidopsis metabolism genes based on GO terms
+aa710 <- read.csv("GO-term-enrichment/for-heatmaps/metabolism/588710-amino-acid.txt",
+                  "\t", skip = 1, header = FALSE)
+all.aa710 <- merge(aa710, dom710, by.x="V2",by.y="ensembl_gene_id")
+
+aa711 <- read.csv("GO-term-enrichment/for-heatmaps/metabolism/588711-amino-acid.txt",
+                  "\t", skip = 1, header = FALSE)
+all.aa711 <- merge(aa711, dom711, by.x="V2",by.y="ensembl_gene_id")
