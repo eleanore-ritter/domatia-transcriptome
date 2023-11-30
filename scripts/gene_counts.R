@@ -51,3 +51,9 @@ all.aa710 <- merge(aa710, dom710, by.x="V2",by.y="ensembl_gene_id")
 aa711 <- read.csv("GO-term-enrichment/for-heatmaps/metabolism/588711-amino-acid.txt",
                   "\t", skip = 1, header = FALSE)
 all.aa711 <- merge(aa711, dom711, by.x="V2",by.y="ensembl_gene_id")
+
+# Read in Arabidopsis biotic interaction genes based on GO terms
+biotic710 <- read.csv("Nov-2023-GO-terms/588710-upregulated-biotic-interaction.txt",
+                                   "\t", skip = 1, header = FALSE)
+all.biotic710 <- merge(biotic710, dom710, by.x="V2",by.y="ensembl_gene_id")
+bioticboth <- merge(all.biotic710, dom711, by="Gene")
