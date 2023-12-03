@@ -343,6 +343,9 @@ df$blade <- df$all_area - df$veins
 df$veins_to_blade <- log(df$veins / df$blade)
 df$log_all_area <- log(df$all_area)
 
+# Calculate vein area to total area ratio
+df$dist_to_all_area <- df$dist/df$all_area
+
 # Plot log(vein/blade) against log(all area)
 # We expect a straight line based on Chitwood et al. 2021
 
@@ -356,7 +359,7 @@ black <-c ("#000000")
 
 ggplot(df, aes(x=log_all_area, y=veins_to_blade, color=sample)) +
   geom_point(shape=20, size = 2) +
-  scale_color_manual(values = c(dwb, dwt, mwb, mwt)) +
+  #scale_color_manual(values = c(dwb, dwt, mwb, mwt)) +
   theme_classic() +
   labs(x="ln(Total Leaf Area)", y="ln(Vein Area / Blade Area)")
 
@@ -366,7 +369,7 @@ summary(model)
 
 ggplot(df, aes(x=log_all_area, y=veins_to_blade)) +
   geom_point(shape=20, size = 2, aes(color=sample)) +
-  scale_color_manual(values = c(dwb, dwt, mwb, mwt)) +
+  #scale_color_manual(values = c(dwb, dwt, mwb, mwt)) +
   theme_classic() +
   labs(x="ln(Total Leaf Area)", y="ln(Vein Area / Blade Area)") +
   geom_smooth(method='lm')
@@ -405,15 +408,14 @@ p6 <- ggplot(df, aes(x=factor(sample, level=c('DWT', 'DWB', 'MWT', 'MWB')), y=ve
                    width = 0.5,
                    colour = "black")
 ## Run t-test
-a = df[df$sample=="DWT",]
-b = df[df$sample=="DWB",]
-c = df[df$sample=="MWT",]
-d = df[df$sample=="MWB",]
+a = df[df$sample=="588710",]
+b = df[df$sample=="588711",]
 
-ttestdakapo <- t.test(a$veins_to_blade,b$veins_to_blade)
-ttestmerlot <- t.test(c$veins_to_blade,d$veins_to_blade)
-ttestwb <- t.test(b$veins_to_blade,d$veins_to_blade)
-ttestwt <- t.test(a$veins_to_blade, c$veins_to_blade)
+
+ttest1 <- t.test(a$veins_to_blade,b$veins_to_blade)
+ttest2 <- t.test(a$veins_to_all_area,b$veins_to_all_area)
+ttest3 <- t.test(a$prox_to_all_area,b$prox_to_all_area)
+ttest4 <- t.test(a$dist_to_all_area,b$dist_to_all_area)
 
 ########################## 4D COMPARE OUR DATA WITH CHITWOOD ET AL. 2021 ##########################
 # MAKE SURE 1, 4A, 4B, AND 4C HAVE BEEN RUN!
@@ -765,31 +767,19 @@ gpa.scaled <- procGPA(coords, reflect=TRUE, scale = TRUE)
 scaled <- gpa.scaled$rotated
 
 #Extract scaled and rotated points by sample
-which(grepl('s710', as.character(files)))
-s710.scaled <- scaled[1:21,1:2,70:136] 
+which(grepl('588710', as.character(files)))
+s710.scaled <- scaled[1:21,1:2,1:25] 
 s710.gpa.scaled <- procGPA(s710.scaled, reflect=TRUE, scale = TRUE)
 
-which(grepl('s711', as.character(files)))
-s711.scaled <- scaled[1:21,1:2,1:69] 
+which(grepl('588711', as.character(files)))
+s711.scaled <- scaled[1:21,1:2,26:54] 
 s711.gpa.scaled <- procGPA(s711.scaled, reflect=TRUE, scale = TRUE)
-
-which(grepl('MWT', as.character(files)))
-mwt.scaled <- scaled[1:21,1:2,207:275] 
-mwt.gpa.scaled <- procGPA(mwt.scaled, reflect=TRUE, scale = TRUE)
-
-which(grepl('MWB', as.character(files)))
-mwb.scaled <- scaled[1:21,1:2,137:206] 
-mwb.gpa.scaled <- procGPA(mwb.scaled, reflect=TRUE, scale = TRUE)
 
 # Get mean shapes
 s710.mshape <- as.data.frame(s710.gpa.scaled$mshape)
-s710.mshape$sample <- c("Dakapo WT")
+s710.mshape$sample <- c("588710")
 s711.mshape <- as.data.frame(s711.gpa.scaled$mshape)
-s711.mshape$sample <- c("Dakapo WB")
-mwt.mshape <- as.data.frame(mwt.gpa.scaled$mshape)
-mwt.mshape$sample <- c("Merlot WT")
-mwb.mshape <- as.data.frame(mwb.gpa.scaled$mshape)
-mwb.mshape$sample <- c("Merlot WB")
+s711.mshape$sample <- c("588711")
 
 #Order data properly before combining
 #Make vectors for geom_path() order
@@ -831,44 +821,10 @@ s711.mshape.I$line <- c("inner")
 #Merge two dataframes
 s711.mshape.A <- rbind(s711.mshape.I, s711.mshape.O)
 
-#Plot mwt and color by leaf node
-mwt.mshape$landmark <- rownames(mwt.mshape)
-mwt.mshape$landmark <- as.character(mwt.mshape$landmark)#Reorder nodes to be in proper joinline order
-
-#Make dataframe with points arranged for outer line
-mwt.mshape.O <- mwt.mshape %>% arrange(factor(landmark, levels = orderout))
-mwt.mshape.O <- mwt.mshape.O[mwt.mshape.O$landmark %in% orderout, ]
-mwt.mshape.O$line <- c("outer")
-
-#Make dataframe with points arranged for vein lines
-mwt.mshape.I <- mwt.mshape %>% arrange(factor(landmark, levels = orderin))
-mwt.mshape.I <- mwt.mshape.I[mwt.mshape.I$landmark %in% orderin, ]
-mwt.mshape.I$line <- c("inner")
-
-#Merge two dataframes
-mwt.mshape.A <- rbind(mwt.mshape.I, mwt.mshape.O)
-
-#Plot mwb and color by leaf node
-mwb.mshape$landmark <- rownames(mwb.mshape)
-mwb.mshape$landmark <- as.character(mwb.mshape$landmark)#Reorder nodes to be in proper joinline order
-
-#Make dataframe with points arranged for outer line
-mwb.mshape.O <- mwb.mshape %>% arrange(factor(landmark, levels = orderout))
-mwb.mshape.O <- mwb.mshape.O[mwb.mshape.O$landmark %in% orderout, ]
-mwb.mshape.O$line <- c("outer")
-
-#Make dataframe with points arranged for vein lines
-mwb.mshape.I <- mwb.mshape %>% arrange(factor(landmark, levels = orderin))
-mwb.mshape.I <- mwb.mshape.I[mwb.mshape.I$landmark %in% orderin, ]
-mwb.mshape.I$line <- c("inner")
-
-#Merge two dataframes
-mwb.mshape.A <- rbind(mwb.mshape.I, mwb.mshape.O)
 
 # Plot mean shapes
 # Merge dataframes by variety
-dakapo.mshape <- rbind(s710.mshape.A, s711.mshape.A)
-merlot.mshape <- rbind(mwt.mshape.A, mwb.mshape.A)
+both.mshape <- rbind(s710.mshape.A, s711.mshape.A)
 
 #Set colors
 light1 <- c("#F6E7DF")
@@ -877,7 +833,7 @@ light2 <- c("#C4D1E9")
 dark2 <- c("#40376E")
 
 # Plot Dakapo mean shapes
-p.dakapo.mshape <- ggplot() +
+p.both.mshape <- ggplot() +
   geom_path(s710.mshape.A, mapping = aes(x=V1, y=V2, group=line, color='Dakapo WT'), alpha=0.75, size = 1.5) +
   geom_path(s711.mshape.A, mapping = aes(x=V1, y=V2, group=line, color='Dakapo WB'), alpha=0.75, size = 1.5) +
   theme_classic() +
@@ -899,31 +855,6 @@ p.dakapo.mshape <- ggplot() +
         #plot.margin=unit(c(-1,-2,-1,-2), "pt"),
         legend.position = "bottom") +
   guides(col = guide_legend(override.aes = list(alpha = 1), reverse = T))
-
-p.merlot.mshape <- ggplot() +
-  geom_path(mwt.mshape.A, mapping = aes(x=V1, y=V2, group=line, color='Merlot WT'), alpha=0.75, size = 1.5) +
-  geom_path(mwb.mshape.A, mapping = aes(x=V1, y=V2, group=line, color='Merlot WB'), alpha=0.75, size = 1.5) +
-  theme_classic() +
-  coord_fixed() +
-  scale_color_manual(values = c(dark2, dark1)) +
-  theme(axis.line=element_blank(),
-        axis.text.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks=element_blank(),
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        panel.background=element_blank(),
-        panel.border=element_blank(),
-        panel.grid.major=element_blank(),
-        panel.grid.minor=element_blank(),
-        plot.background=element_blank(),
-        legend.title = element_blank(),
-        legend.text = element_text(size=12),
-        #plot.margin=unit(c(-1,-2,-1,-2), "pt"),
-        legend.position = "bottom") +
-  guides(col = guide_legend(override.aes = list(alpha = 1), reverse = T))
-
-mshape.grid <- plot_grid(p.dakapo.mshape, p.merlot.mshape, ncol=2, nrow=1, align = "h", labels = "AUTO")
 
 ########################## 9 PLOTTING PCA FOR SHAPE DATA ##########################
 #Set working directory
