@@ -2,6 +2,8 @@
 #setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
 setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
+library("plot_ly")
+
 ######################## DATA WRANGLING FOR GREAT ########################
 
 # Load data
