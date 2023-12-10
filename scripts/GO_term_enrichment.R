@@ -3,29 +3,43 @@
 setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library("topGO")
+library(dplyr)
+library(tidyr)
+library(GOSim)
+library(GO.db)
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V LEAF IN 588710 ######################## 
 
 # Load data
 
 ## Load functional annotations
-all <- read.csv("Vriparia-functional-annotations.tsv", sep='\t')
+all <- read.csv("Vriparia-functional-annotations-TAIR10-mod.tsv", sep='\t')
 
 ## Add gene data to all if needed
 dict <- read.csv("cds-to-gene.tsv", sep = '\t')
 colnames(dict) <- c("Transcript", "gene")
+dict$Transcript <- gsub("\\.[0-9]", "", dict$Transcript)
 all <- merge(all, dict, by="Transcript", all = TRUE)
-all <- all[,c(1, 8, 2:7)]
+all <- all[,c(1, 8, 3:7)]
 all <- all %>% drop_na(gene)
-all <- all[!duplicated(all),]
+all <- all[!duplicated(all$gene),] # Get rid of duplicates - all rows are identical (transcripts are sometimes different, that is all)
+
+## Proving that duplicated rows are identical for all gene names and GO terms as a sanity check
+
+test <- all
+check<-do.call(rbind,tapply(1:nrow(test),
+                            test$gene,
+                            function(ii) lengths(lapply(test,function(jj) unique(jj[ii])))))
+apply(check,2,function(ii) any(ii>2))
 
 ## Load differentially expressed genes
-degenes <- read.csv("DE_genes_Domatia_V_Leaf_588710.csv")
+degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588710.csv")
+
 
 # Modify data
 
 ## Modify GO term file
-allgo <- all[,c(2,5,7)]
+allgo <- all[,c(2,4,6)]
 foo<-function(x){
   inds<-allgo$gene==x
   tmp1<-unique(unlist(strsplit(allgo$Arabidopsis_GO_terms[inds],"\\|"),use.names=FALSE))
@@ -38,6 +52,24 @@ foo<-function(x){
 }
 allgo <- do.call(rbind,
                  lapply(unique(allgo$gene),foo))
+
+
+## Add back in parent GO terms
+gotest <- c("GO:0000812", "GO:0000742")
+
+xx<- as.list(GOBPPARENTS)
+if(length(gotest) > 0){
+  # Get the parent GO IDs for the first elents of xx
+  goids <- gotest[[1]]
+  # Find out the GO terms for the first parent goid
+  GOID(GOTERM[[goids[1]]])
+  Term(GOTERM[[goids[1]]])
+  Synonym(GOTERM[[goids[1]]])
+  Secondary(GOTERM[[goids[1]]])
+  Definition(GOTERM[[goids[1]]])
+  Ontology(GOTERM[[goids[1]]])
+}
+GOBPPARENTS(gotest)
 
 rn1 <- paste(allgo[,1], sep="")
 gene2GO <- paste(allgo$Arabidopsis_GO_terms, allgo$PFAM_GO_terms, sep="|")
@@ -62,14 +94,14 @@ GODATA <- new("topGOdata",
               allGenes = matches,
               gene2GO = gene2GO,
               geneSel = ft,
-              annotationFun = annFUN.gene2GO
+              annotationFun = annFUN.gene2GO,
               )
 
 # Run GO term enrichment analysis
 
 ## Run with Fisher's exact test
-# resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
-# resultFisher.BP
+resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+resultFisher.BP
 
 ## Run with Kolmogorov-Smirnov test
 resultKS.BP710 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
