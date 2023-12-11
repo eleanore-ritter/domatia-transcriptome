@@ -1,41 +1,189 @@
 # Set working directory and load necessary packages
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library("topGO")
 library(dplyr)
 library(tidyr)
-library(ggplot2)
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V LEAF IN 588710 ######################## 
 
 # Load data
 
 ## Load functional annotations
-all <- read.csv("Vriparia-functional-annotations.tsv", sep='\t')
+all <- read.csv("Vriparia-functional-annotations-TAIR10-mod.tsv", sep='\t')
+#can read this in: "Vriparia-functional-annotations-withparents.tsv", sep='\t'
 
 ## Add gene data to all if needed
-dict <- read.csv("cds-to-gene.tsv", sep = '\t')
+dict <- read.csv("cds-to-gene-V2.tsv", sep = '\t')
 colnames(dict) <- c("Transcript", "gene")
+dict$Transcript <- gsub("\\.[0-9]", "", dict$Transcript)
 all <- merge(all, dict, by="Transcript", all = TRUE)
-all <- all[,c(1, 8, 2:7)]
+all <- all[,c(1, 8, 3:7)]
 all <- all %>% drop_na(gene)
-all <- all[!duplicated(all),]
+all <- all[!duplicated(all$gene),] # Get rid of duplicates - all rows are identical (transcripts are sometimes different, that is all)
+
+## Proving that duplicated rows are identical for all gene names and GO terms as a sanity check
+
+test <- all
+check<-do.call(rbind,tapply(1:nrow(test),
+                            test$gene,
+                            function(ii) lengths(lapply(test,function(jj) unique(jj[ii])))))
+apply(check,2,function(ii) any(ii>2))
 
 ## Load differentially expressed genes
 degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588710.csv")
 
-# Modify DE gene list
-final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
 
-# For only upregulated genes
-degenes2 <- degenes[degenes$log2FoldChange>0 ,]
-final<-cbind(degenes2,all[match(degenes2$Gene,all$gene),])
+# Modify data
 
-# Copy Arabidopsis orthologs
-writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))
+## Modify GO term file
+allgo <- all[,c(2,4,6)]
+foo<-function(x){
+  inds<-allgo$gene==x
+  tmp1<-unique(unlist(strsplit(allgo$Arabidopsis_GO_terms[inds],"\\|"),use.names=FALSE))
+  tmp1<-tmp1[nzchar(tmp1)&!is.na(tmp1)]
+  tmp2<-unique(unlist(strsplit(allgo$PFAM_GO_terms[inds],"\\|"),use.names=FALSE))
+  tmp2<-tmp2[nzchar(tmp2)&!is.na(tmp2)]
+  data.frame("gene"=x,
+             "Arabidopsis_GO_terms"=paste(tmp1,collapse="|"),
+             "PFAM_GO_terms"=paste(tmp2,collapse="|"))
+}
+allgo <- do.call(rbind,
+                 lapply(unique(allgo$gene),foo))
 
-rm(list = ls())
+
+## Add back in parent GO terms
+
+#parse obo file in lookup list
+tmp<-readLines("go-basic.obo")
+tmp<-tmp[nchar(tmp)>0]
+tmp<-tmp[do.call(`:`,as.list(match(c("[Term]","[Typedef]"),tmp)-c(0,1)))]
+inds<-tmp=="[Term]"
+runs<-rle(inds)
+runs$values<-rep(1:(length(runs$values)/2),each=2)
+inds<-inverse.rle(runs)
+tmp<-split(tmp,inds)
+ids<-lapply(tmp,function(ii) gsub("^id\\: ","",ii[grepl("^id\\:",ii)]))
+any(lengths(ids)>1) #no double ids
+pas<-lapply(tmp,
+            function(ii){
+              tmp<-gsub("^is_a\\: ","",ii[grepl("^is_a\\:",ii)])
+              tmp<-substr(tmp,1,regexpr("\\!",tmp)-2)
+            })
+lookup<-setNames(pas,ids)
+
+#parent- getting
+#perhaps slower than necessary, but straight-forward and reasonably fast
+all.parents<-setNames(apply(do.call(cbind,lapply(allgo[,-1],strsplit,split="\\|")),1,unlist,use.names=FALSE),allgo[,1])
+for(i in seq_along(all.parents)){
+  qq<-all.parents[[i]]
+  while(length(qq)>1){
+    qq<-unlist(lookup[match(qq,names(lookup))],use.names=FALSE)
+    all.parents[[i]]<-unique(c(all.parents[[i]],qq))
+  }
+  if(!(i%%1000)) cat(i,"\n")
+}
+#just for comparison to make sure it looks right...
+og<-setNames(apply(do.call(cbind,lapply(allgo[,-1],strsplit,split="\\|")),1,unlist,use.names=FALSE),allgo[,1])
+plot(lengths(all.parents)~lengths(og));abline(0,1)
+any(lengths(all.parents)<lengths(og))
+#welp, the number of parents is always equal to or greater than the number of children, so that's promising!
+#some empty list elements, but they seem to correspond to rows without go terms in "allgo":
+all((!lengths(og))==(!nchar(allgo[,2])&!nchar(allgo[,3])))
+
+all(allgo[,1]==names(all.parents))
+allgo$all.pars<-unlist(lapply(all.parents,paste,collapse="|"),use.names=FALSE)
+
+write.csv(allgo, "Vriparia-functional-annotations-withparents.tsv", sep='\t')
+
+rn1 <- paste(allgo[,1], sep="")
+#gene2GO <- paste(allgo$Arabidopsis_GO_terms, allgo$PFAM_GO_terms, sep="|")
+#gene2GO = allgo[,-1]
+gene2GO <- paste(allgo$all.pars)
+names(gene2GO)<-rn1
+gene2GO<-strsplit(gene2GO,"\\|")
+
+## Modify DE gene list
+matches<-setNames(match(degenes$Gene,allgo$gene,nomatch=0),degenes$Gene)
+matches[matches>0]<-1
+
+# Set up GO data
+## Set up function
+ft <- function(x){
+  return(x>0)
+}
+
+## Set up as topGOdata with BP ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588710",
+              ontology = "BP",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO,
+              )
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+resultFisher.BP
+
+## Run with Kolmogorov-Smirnov test
+resultKS.BP710 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.BP710
+pvalKS.BP710 <- as.data.frame(score(resultKS.BP710))
+
+# resultKS.elim.BP <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.BP
+
+## Set up as topGOdata with MF ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588710",
+              ontology = "MF",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+# ## Run with Fisher's exact test
+# resultFisher.MF <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.MF
+
+## Run with Kolmogorov-Smirnov test
+resultKS.MF710 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.MF710
+pvalKS.MF710 <- as.data.frame(score(resultKS.MF710))
+
+# resultKS.elim.MF <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.MF
+
+## Set up as topGOdata with CC ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588710",
+              ontology = "CC",
+              allGenes = matches,
+              gene2GO = gene2GO, 
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+# resultFisher.CC <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.CC
+
+## Run with Kolmogorov-Smirnov test
+resultKS.CC710 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.CC710
+pvalKS.CC710 <- as.data.frame(score(resultKS.CC710))
+
+# resultKS.elim.CC <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V LEAF IN 588711 ######################## 
 
@@ -45,7 +193,7 @@ rm(list = ls())
 all <- read.csv("Vriparia-functional-annotations.tsv", sep='\t')
 
 ## Add gene data to all if needed
-dict <- read.csv("cds-to-gene.tsv", sep = '\t')
+dict <- read.csv("cds-to-gene-V2.tsv", sep = '\t')
 colnames(dict) <- c("Transcript", "gene")
 all <- merge(all, dict, by="Transcript", all = TRUE)
 all <- all[,c(1, 8, 2:7)]
@@ -53,19 +201,99 @@ all <- all %>% drop_na(gene)
 all <- all[!duplicated(all),]
 
 ## Load differentially expressed genes
-degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588711.csv")
+degenes <- read.csv("DE_genes_Domatia_V_Leaf_588711.csv")
 
-# Modify DE gene list
-final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
+# Modify data
 
-# For only upregulated genes
-degenes2 <- degenes[degenes$log2FoldChange>0 ,]
-final<-cbind(degenes2,all[match(degenes2$Gene,all$gene),])
+## Modify GO term file
+allgo <- all[,c(2,7)]
+rn1 <- paste(allgo[,1], sep="")
+gene2GO = allgo[,-1]
+names(gene2GO)<-rn1
+gene2GO<-strsplit(gene2GO,"\\|")
 
-# Copy Arabidopsis orthologs
-writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))  
+## Modify DE gene list
+matches<-setNames(match(degenes$Gene,allgo$gene,nomatch=0),degenes$Gene)
+matches[matches>0]<-1
 
-rm(list = ls())
+# Set up GO data
+## Set up function
+ft <- function(x){
+  return(x>0)
+}
+
+## Set up as topGOdata with BP ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588711",
+              ontology = "BP",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+# resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.BP
+
+## Run with Kolmogorov-Smirnov test
+resultKS.BP711 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.BP711
+pvalKS.BP711 <- as.data.frame(score(resultKS.BP711))
+
+# resultKS.elim.BP <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.BP
+
+## Set up as topGOdata with MF ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588710",
+              ontology = "MF",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+# ## Run with Fisher's exact test
+# resultFisher.MF <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.MF
+
+## Run with Kolmogorov-Smirnov test
+resultKS.MF711 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.MF711
+pvalKS.MF711 <- as.data.frame(score(resultKS.MF711))
+
+# resultKS.elim.MF <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.MF
+
+## Set up as topGOdata with CC ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Leaf in 588710",
+              ontology = "CC",
+              allGenes = matches,
+              gene2GO = gene2GO, 
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+# resultFisher.CC <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.CC
+
+## Run with Kolmogorov-Smirnov test
+resultKS.CC711 <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.CC711
+pvalKS.CC711 <- as.data.frame(score(resultKS.CC711))
+
+# resultKS.elim.CC <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.CC
+# resultKS.elim.CC
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V DOMATIA ######################## 
 
@@ -75,7 +303,7 @@ rm(list = ls())
 all <- read.csv("Vriparia-functional-annotations.tsv", sep='\t')
 
 ## Add gene data to all if needed
-dict <- read.csv("cds-to-gene.tsv", sep = '\t')
+dict <- read.csv("cds-to-gene-V2.tsv", sep = '\t')
 colnames(dict) <- c("Transcript", "gene")
 all <- merge(all, dict, by="Transcript", all = TRUE)
 all <- all[,c(1, 8, 2:7)]
@@ -83,15 +311,99 @@ all <- all %>% drop_na(gene)
 all <- all[!duplicated(all),]
 
 ## Load differentially expressed genes
-degenes <- read.csv("differentially_expressed_genes/DE_genes_Domatia_710_v_711.csv")
+degenes <- read.csv("DE_genes_Domatia_710_v_711.csv")
 
-# Modify DE gene list
-final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
+# Modify data
 
-# Copy Arabidopsis orthologs
-writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))               
+## Modify GO term file
+allgo <- all[,c(2,7)]
+rn1 <- paste(allgo[,1], sep="")
+gene2GO = allgo[,-1]
+names(gene2GO)<-rn1
+gene2GO<-strsplit(gene2GO,"\\|")
 
-rm(list = ls())
+## Modify DE gene list
+matches<-setNames(match(degenes$Gene,allgo$gene,nomatch=0),degenes$Gene)
+matches[matches>0]<-1
+
+# Set up GO data
+## Set up function
+ft <- function(x){
+  return(x>0)
+}
+
+## Set up as topGOdata with BP ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Domatia",
+              ontology = "BP",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+# resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.BP
+
+## Run with Kolmogorov-Smirnov test
+resultKS.BPDOM <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.BPDOM
+pvalKS.BPDOM <- as.data.frame(score(resultKS.BPDOM))
+
+# resultKS.elim.BP <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.BP
+
+## Set up as topGOdata with MF ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Domatia",
+              ontology = "MF",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+# ## Run with Fisher's exact test
+# resultFisher.MF <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.MF
+
+## Run with Kolmogorov-Smirnov test
+resultKS.MFDOM <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.MFDOM
+pvalKS.MFDOM <- as.data.frame(score(resultKS.MFDOM))
+
+# resultKS.elim.MF <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.MF
+
+## Set up as topGOdata with CC ontology
+GODATA <- new("topGOdata",
+              description = "Domatia vs Domatia",
+              ontology = "CC",
+              allGenes = matches,
+              gene2GO = gene2GO, 
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
+
+# Run GO term enrichment analysis
+
+## Run with Fisher's exact test
+# resultFisher.CC <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.CC
+
+## Run with Kolmogorov-Smirnov test
+resultKS.CCDOM <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.CCDOM
+pvalKS.CCDOM <- as.data.frame(score(resultKS.CCDOM))
+
+# resultKS.elim.CC <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.CC
+# resultKS.elim.CC
 
 ######################## GO TERM ENRICHMENT WITH CONTROL V CONTROL ######################## 
 
@@ -101,7 +413,7 @@ rm(list = ls())
 all <- read.csv("Vriparia-functional-annotations.tsv", sep='\t')
 
 ## Add gene data to all if needed
-dict <- read.csv("cds-to-gene.tsv", sep = '\t')
+dict <- read.csv("cds-to-gene-V2.tsv", sep = '\t')
 colnames(dict) <- c("Transcript", "gene")
 all <- merge(all, dict, by="Transcript", all = TRUE)
 all <- all[,c(1, 8, 2:7)]
@@ -109,269 +421,96 @@ all <- all %>% drop_na(gene)
 all <- all[!duplicated(all),]
 
 ## Load differentially expressed genes
-degenes <- read.csv("differentially_expressed_genes/DE_genes_Control_710_v_711.csv")
+degenes <- read.csv("DE_genes_Control_710_v_711.csv")
 
-# Modify DE gene list
-final<-cbind(degenes,all[match(degenes$Gene,all$gene),])
+# Modify data
 
-# Copy Arabidopsis orthologs
-writeClipboard(paste0(as.vector(na.omit(gsub("\\.[0-9]", "", final$Arabidopsis_blast_hit)))))               
+## Modify GO term file
+allgo <- all[,c(2,7)]
+rn1 <- paste(allgo[,1], sep="")
+gene2GO = allgo[,-1]
+names(gene2GO)<-rn1
+gene2GO<-strsplit(gene2GO,"\\|")
 
-rm(list = ls())
-######################## MAKE PLOT FROM PANTHER RESULTS FOR BOTH GENOTYPES ########################
-df10 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588710_GO_term_enrichment_analysis.csv", skip = 11, sep = '\t')
-colnames(df10) <- paste( colnames(df10), ".588710", sep="")
-df11 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588711_GO_term_enrichment_analysis.csv", skip = 11, sep = '\t')
-colnames(df11) <- paste( colnames(df11), ".588711", sep="")
+## Modify DE gene list
+matches<-setNames(match(degenes$Gene,allgo$gene,nomatch=0),degenes$Gene)
+matches[matches>0]<-1
 
-top20.10 <- head(df10[order(df10[df10$upload_1..over.under..588710=="+",]$upload_1..FDR..588710),], n = 20)
-top20.11 <- head(df11[order(df11[df11$upload_1..over.under..588711=="+",]$upload_1..FDR..588711),], n = 20)
+# Set up GO data
+## Set up function
+ft <- function(x){
+  return(x>0)
+}
 
-top20.10a <- as.data.frame(top20.10[, c(1,3,6,8)])
-top20.10a$Genotype <- c("588710")
-colnames(top20.10a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
+## Set up as topGOdata with BP ontology
+GODATA <- new("topGOdata",
+              description = "Control v Control",
+              ontology = "BP",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
 
-top20.11a <- as.data.frame(top20.11[, c(1,3,6,8)])
-top20.11a$Genotype <- c("588711")
-colnames(top20.11a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
+# Run GO term enrichment analysis
 
-df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,3,6,8)])
-df10.a$Genotype <- c("588710")
-colnames(df10.a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
+## Run with Fisher's exact test
+# resultFisher.BP <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.BP
 
-df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,3,6,8)])
-df11.a$Genotype <- c("588711")
-colnames(df11.a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
+## Run with Kolmogorov-Smirnov test
+resultKS.BPCONTROL <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.BPCONTROL
+pvalKS.BPCONTROL <- as.data.frame(score(resultKS.BPCONTROL))
 
-overlap1 <- df10.a[df10.a$GO.Term.Biological.Process %in% top20.11a$GO.Term.Biological.Process ,]
-overlap2 <- df11.a[df11.a$GO.Term.Biological.Process %in% top20.10a$GO.Term.Biological.Process ,]
+# resultKS.elim.BP <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.BP
 
-data <- unique(rbind(overlap1, overlap2, top20.10a, top20.11a))
+## Set up as topGOdata with MF ontology
+GODATA <- new("topGOdata",
+              description = "Control v Control",
+              ontology = "MF",
+              allGenes = matches,
+              gene2GO = gene2GO,
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
 
-ggplot(data, (aes(x=Genotype, y=GO.Term.Biological.Process, color = as.numeric(FDR.P.value), size=as.numeric(DEGs)))) + 
-  geom_point(shape = 19) +
-  scale_color_gradient(low = "orange", high = "blue") +
-  theme_classic() +
-  scale_y_discrete(limits=rev) +
-  ylab("GO Term") 
+# Run GO term enrichment analysis
 
-# Look at overlap for all significant and positively enriched GO terms
-sign10 <- df10.a[df10.a$FDR.P.value <0.05 ,]
-sign11 <- df11.a[df11.a$FDR.P.value<0.05 ,]
-tempa <- sign10[sign10$GO.Term.Biological.Process %in% sign11$GO.Term.Biological.Process ,]
-tempb <- sign11[sign11$GO.Term.Biological.Process %in% sign10$GO.Term.Biological.Process ,]
-sign.overlap <- unique(rbind(tempa, tempb))
+# ## Run with Fisher's exact test
+# resultFisher.MF <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.MF
 
-ggplot(sign.overlap, (aes(x=Genotype, y=GO.Term.Biological.Process, color = as.numeric(FDR.P.value), size=as.numeric(Fold.Enrichment)))) + 
-  geom_point() +
-  scale_color_gradient(low = "orange", high = "blue") +
-  theme_classic()
+## Run with Kolmogorov-Smirnov test
+resultKS.MFCONTROL <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.MFCONTROL
+pvalKS.MFCONTROL <- as.data.frame(score(resultKS.MFCONTROL))
 
-# # With top fold changes
-# top20.10 <- head(sign10[order(sign10$Fold.Enrichment, decreasing = TRUE),], n = 20)
-# top20.11 <- head(sign11[order(sign11$Fold.Enrichment, decreasing = TRUE),], n = 20)
-# 
-# df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,6,8)])
-# df10.a$Genotype <- c("588710")
-# colnames(df10.a) <- c("GO.Term.Biological.Process", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,6,8)])
-# df11.a$Genotype <- c("588711")
-# colnames(df11.a) <- c("GO.Term.Biological.Process", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# overlap1 <- df10.a[df10.a$GO.Term.Biological.Process %in% top20.11$GO.Term.Biological.Process ,]
-# overlap2 <- df11.a[df11.a$GO.Term.Biological.Process %in% top20.10$GO.Term.Biological.Process ,]
-# 
-# data <- unique(rbind(overlap1, overlap2, top20.10, top20.11))
-# 
-# ggplot(data, (aes(x=Genotype, y=GO.Term.Biological.Process, color = as.numeric(FDR.P.value), size=as.numeric(Fold.Enrichment)))) + 
-#   geom_point() +
-#   scale_color_gradient(low = "orange", high = "blue") +
-#   theme_classic()
+# resultKS.elim.MF <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.MF
 
-######################## MAKE PLOT FROM PANTHER RESULTS (W BONFERRONI) FOR BOTH GENOTYPES ########################
-df10 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588710_GO_term_enrichment_analysis_bonferroni.csv", skip = 12, sep = '\t')
-colnames(df10) <- paste( colnames(df10), ".588710", sep="")
-df11 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588711_GO_term_enrichment_analysis_bonferroni.csv", skip = 12, sep = '\t')
-colnames(df11) <- paste( colnames(df11), ".588711", sep="")
+## Set up as topGOdata with CC ontology
+GODATA <- new("topGOdata",
+              description = "Control v Control",
+              ontology = "CC",
+              allGenes = matches,
+              gene2GO = gene2GO, 
+              geneSel = ft,
+              annotationFun = annFUN.gene2GO
+)
 
-# top20.10 <- head(df10[order(df10[df10$upload_1..over.under..588710=="+",]$upload_1..FDR..588710),], n = 20)
-# top20.11 <- head(df11[order(df11[df11$upload_1..over.under..588711=="+",]$upload_1..FDR..588711),], n = 20)
-# 
-# top20.10a <- as.data.frame(top20.10[, c(1,3,6,8)])
-# top20.10a$Genotype <- c("588710")
-# colnames(top20.10a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# top20.11a <- as.data.frame(top20.11[, c(1,3,6,8)])
-# top20.11a$Genotype <- c("588711")
-# colnames(top20.11a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
+# Run GO term enrichment analysis
 
-df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,3,5,6,7)])
-df10.a$Genotype <- c("588710")
-colnames(df10.a) <- c("GO.Term.Biological.Process", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
+## Run with Fisher's exact test
+# resultFisher.CC <- runTest(GODATA, algorithm = "classic", statistic = "fisher")
+# resultFisher.CC
 
-df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,3,5,6,7)])
-df11.a$Genotype <- c("588711")
-colnames(df11.a) <- c("GO.Term.Biological.Process", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
+## Run with Kolmogorov-Smirnov test
+resultKS.CCCONTROL <- runTest(GODATA, algorithm = "classic", statistic = "ks") # Classic method
+resultKS.CCCONTROL
+pvalKS.CCCONTROL <- as.data.frame(score(resultKS.CCCONTROL))
 
-# overlap1 <- df10.a[df10.a$GO.Term.Biological.Process %in% top20.11a$GO.Term.Biological.Process ,]
-# overlap2 <- df11.a[df11.a$GO.Term.Biological.Process %in% top20.10a$GO.Term.Biological.Process ,]
-# 
-# data <- unique(rbind(overlap1, overlap2, top20.10a, top20.11a))
-# 
-# ggplot(data, (aes(x=Genotype, y=GO.Term.Biological.Process, color = as.numeric(FDR.P.value), size=as.numeric(DEGs)))) + 
-#   geom_point(shape = 19) +
-#   scale_color_gradient(low = "orange", high = "blue") +
-#   theme_classic() +
-#   scale_y_discrete(limits=rev) +
-#   ylab("GO Term") 
-
-# Look at overlap for all significant and positively enriched GO terms
-sign10 <- df10.a[df10.a$P.value <0.05 ,]
-sign11 <- df11.a[df11.a$P.value<0.05 ,]
-tempa <- sign10[sign10$GO.Term.Biological.Process %in% sign11$GO.Term.Biological.Process ,]
-tempb <- sign11[sign11$GO.Term.Biological.Process %in% sign10$GO.Term.Biological.Process ,]
-sign.overlap <- unique(rbind(tempa, tempb))
-
-ggplot(sign.overlap, (aes(x=Genotype, y=GO.Term.Biological.Process, color = as.numeric(Fold.Enrichment), size=as.numeric(DEGs)))) + 
-  geom_point() +
-  scale_color_gradient(low = "orange", high = "blue", name = "Fold Enrichment") +
-  scale_y_discrete(limits=rev) +
-  theme_classic() +
-  ylab("GO Term (Biological Process)") +
-  scale_size_continuous(name = "DEGs") +
-  theme(axis.text.x = element_text(size=11, face="bold"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_text(size=11, face="bold"))
-
-######################## MAKE PLOT FROM PANTHER RESULTS (W BONFERRONI) FOR BOTH GENOTYPES - CC ########################
-df10 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588710_GO_term_enrichment_analysis_bonferroni_CC.csv", skip = 12, sep = '\t')
-colnames(df10) <- paste( colnames(df10), ".588710", sep="")
-df11 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588711_GO_term_enrichment_analysis_bonferroni_CC.csv", skip = 12, sep = '\t')
-colnames(df11) <- paste( colnames(df11), ".588711", sep="")
-
-df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,3,5,6,7)])
-df10.a$Genotype <- c("588710")
-colnames(df10.a) <- c("GO.Term.Cellular.Component", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
-
-df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,3,5,6,7)])
-df11.a$Genotype <- c("588711")
-colnames(df11.a) <- c("GO.Term.Cellular.Component", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
-
-# Look at overlap for all significant and positively enriched GO terms
-sign10 <- df10.a[df10.a$P.value <0.05 ,]
-sign11 <- df11.a[df11.a$P.value<0.05 ,]
-tempa <- sign10[sign10$GO.Term.Cellular.Component %in% sign11$GO.Term.Cellular.Component ,]
-tempb <- sign11[sign11$GO.Term.Cellular.Component %in% sign10$GO.Term.Cellular.Component ,]
-sign.overlap <- unique(rbind(tempa, tempb))
-
-sign.overlap1 <- sign.overlap[!grepl("Unclassified*", sign.overlap$GO.Term.Cellular.Component),]
-
-ggplot(sign.overlap1, (aes(x=Genotype, y=GO.Term.Cellular.Component, color = as.numeric(Fold.Enrichment), size=as.numeric(DEGs)))) +
-  geom_point() +
-  scale_color_gradient(low = "orange", high = "blue", name = "Fold Enrichment") +
-  scale_y_discrete(limits=rev) +
-  theme_classic() +
-  ylab("GO Term (Cellular Component)") +
-  scale_size_continuous(name = "DEGs") +
-  theme(axis.text.x = element_text(size=11, face="bold"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_text(size=11, face="bold"))
-
-# #Plotting all significant terms (even if they DON'T overlap!)
-# overlap1 <- df10.a[df10.a$GO.Term.Cellular.Component %in% sign11$GO.Term.Cellular.Component ,]
-# overlap2 <- df11.a[df11.a$GO.Term.Cellular.Component %in% sign10$GO.Term.Cellular.Component ,]
-# 
-# data <- unique(rbind(overlap1, overlap2, sign10, sign11))
-# 
-# ggplot(data, (aes(x=Genotype, y=GO.Term.Cellular.Component, color = as.numeric(P.value), size=as.numeric(DEGs)))) +
-#   geom_point(shape = 19) +
-#   scale_color_gradient(low = "orange", high = "blue") +
-#   theme_classic() +
-#   scale_y_discrete(limits=rev) +
-#   ylab("GO Term (Cellular Component)")
-
-
-######################## INVESTIGATING GO TERM ENRICHMENT FOR CONTROL V CONTROL - BP ########################
-
-data.bp <- read.csv("GO-term-enrichment/DE_genes_Control_588710_V_Control_588711_GO_term_enrichment_analysis_bonferroni.csv", skip = 12, sep = '\t')
-sign.bp <- data.bp[data.bp$upload_1..P.value. <0.05 ,]
-sign.bp.over <- sign.bp[sign.bp$upload_1..over.under.=="+" ,]
-
-# Notes: a good amount of overlap with what is different between domatia and control - interesting! Quantified below
-
-# df10 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588710_GO_term_enrichment_analysis.csv", skip = 11, sep = '\t')
-# colnames(df10) <- paste( colnames(df10), ".588710", sep="")
-# df11 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588711_GO_term_enrichment_analysis.csv", skip = 11, sep = '\t')
-# colnames(df11) <- paste( colnames(df11), ".588711", sep="")
-# 
-# top20.10 <- head(df10[order(df10[df10$upload_1..over.under..588710=="+",]$upload_1..FDR..588710),], n = 20)
-# top20.11 <- head(df11[order(df11[df11$upload_1..over.under..588711=="+",]$upload_1..FDR..588711),], n = 20)
-# 
-# top20.10a <- as.data.frame(top20.10[, c(1,3,6,8)])
-# top20.10a$Genotype <- c("588710")
-# colnames(top20.10a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# top20.11a <- as.data.frame(top20.11[, c(1,3,6,8)])
-# top20.11a$Genotype <- c("588711")
-# colnames(top20.11a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,3,6,8)])
-# df10.a$Genotype <- c("588710")
-# colnames(df10.a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,3,6,8)])
-# df11.a$Genotype <- c("588711")
-# colnames(df11.a) <- c("GO.Term.Biological.Process", "DEGs", "Fold.Enrichment", "FDR.P.value", "Genotype")
-# 
-# # Look at overlap for all significant and positively enriched GO terms
-# sign10 <- df10.a[df10.a$FDR.P.value <0.05 ,]
-# sign11 <- df11.a[df11.a$FDR.P.value<0.05 ,]
-# tempa <- sign10[sign10$GO.Term.Biological.Process %in% sign11$GO.Term.Biological.Process ,]
-# tempb <- sign11[sign11$GO.Term.Biological.Process %in% sign10$GO.Term.Biological.Process ,]
-# sign.overlap <- unique(rbind(tempa, tempb))
-# 
-# bp.overlap <- sign.bp.over[sign.bp.over$GO.biological.process.complete %in% sign.overlap$GO.Term.Biological.Process ,]
-
-# # 32 of the GO terms overlap with those shared between domatia v control datasets
-
-######################## INVESTIGATING GO TERM ENRICHMENT FOR CONTROL V CONTROL - CC ########################
-
-data.cc <- read.csv("GO-term-enrichment/DE_genes_Control_588710_V_Control_588711_GO_term_enrichment_analysis_bonferroni_CC.csv", skip = 12, sep = '\t')
-sign.cc <- data.cc[data.cc$upload_1..P.value. <0.05 ,]
-sign.cc.over <- sign.cc[sign.cc$upload_1..over.under.=="+" ,]
-
-# # Same as above - let's quantify overlap with those shared and significant in domatia v control datasets
-# df10 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588710_GO_term_enrichment_analysis_bonferroni_CC.csv", skip = 12, sep = '\t')
-# colnames(df10) <- paste( colnames(df10), ".588710", sep="")
-# df11 <- read.csv("GO-term-enrichment/DE_genes_Domatia_V_Leaf_588711_GO_term_enrichment_analysis_bonferroni_CC.csv", skip = 12, sep = '\t')
-# colnames(df11) <- paste( colnames(df11), ".588711", sep="")
-# 
-# df10.a <- as.data.frame(df10[df10$upload_1..over.under..588710=="+" ,] [, c(1,3,5,6,7)])
-# df10.a$Genotype <- c("588710")
-# colnames(df10.a) <- c("GO.Term.Cellular.Component", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
-# 
-# df11.a <- as.data.frame(df11[df11$upload_1..over.under..588711=="+" ,] [, c(1,3,5,6,7)])
-# df11.a$Genotype <- c("588711")
-# colnames(df11.a) <- c("GO.Term.Cellular.Component", "DEGs", "Over.Under", "Fold.Enrichment", "P.value", "Genotype")
-# 
-# # Look at overlap for all significant and positively enriched GO terms
-# sign10 <- df10.a[df10.a$P.value <0.05 ,]
-# sign11 <- df11.a[df11.a$P.value<0.05 ,]
-# tempa <- sign10[sign10$GO.Term.Cellular.Component %in% sign11$GO.Term.Cellular.Component ,]
-# tempb <- sign11[sign11$GO.Term.Cellular.Component %in% sign10$GO.Term.Cellular.Component ,]
-# sign.overlap <- unique(rbind(tempa, tempb))
-# 
-# cc.overlap <- sign.cc.over[sign.cc.over$GO.cellular.component.complete %in% sign.overlap$GO.Term.Cellular.Component ,]
-# 
-# # 6 of the GO terms overlap with those shared between domatia v control datasets - all cell wall related
-
-######################## INVESTIGATING CELL WALL GENES FROM CONTROL V CONTROL ########################
-cell.wall <- read.csv("GO-term-enrichment/DE_genes_Control_588710_V_Control_588711_plant-type_cell_wall_gene_list.csv", sep = "\t", header = FALSE)
-data10 <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588710.csv")
-data11 <- read.csv("differentially_expressed_genes/DE_genes_Domatia_V_Leaf_588711.csv")
-
-overlap10 <- merge(cell.wall, data10, by.x="V2", by.y="ensembl_gene_id")
-overlap11 <- merge(cell.wall, data11, by.x="V2", by.y="ensembl_gene_id")
-
-both <- merge(overlap10, overlap11, by="V2")
+# resultKS.elim.CC <- runTest(GODATA, algorithm = "elim", statistic = "ks") # Elimination method
+# resultKS.elim.CC
+# resultKS.elim.CC
