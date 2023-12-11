@@ -1,7 +1,7 @@
 # Set working directory and load necessary packages
 
-setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(DESeq2)
 library(dplyr)
@@ -99,13 +99,7 @@ Heatmap(temp2, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
 cellwall <- read.csv("GO-term-enrichment/DE_genes_Control_V_Domatia_588710_cell_wall_gene_list.csv",
                      sep="\t", row.names=NULL, header = FALSE)
 
-cellwall.genes <- c("AT5G13870", #XTH5 #Start of xyloglucan synthesis and modification
-                    "AT2G14620", #XTH10
-                    "AT4G14130", #XTH15
-                    "AT4G25810", #XTH23
-                    "AT2G36870", #XTH32
-                    "AT5G20950", #BGLC1
-                    "AT1G19300", #GATL1 #Start of xylan synthesis and modification
+cellwall.genes <- c("AT1G19300", #GATL1 #Start of xylan synthesis and modification
                     "AT3G50220", #IRX15 
                     "AT3G18660", #GUX1
                     "AT5G54690", #GAUT12
@@ -113,25 +107,24 @@ cellwall.genes <- c("AT5G13870", #XTH5 #Start of xyloglucan synthesis and modifi
                     "AT1G33800", #GXM3
                     "AT1G73140", #TBL31
                     "AT2G38320", #TBL34
-                    "AT3G05620", #PME22 #Start of pectin biosynthesis and modification
-                    "AT3G43270", #PME32
-                    "AT1G23200", #PME6
-                    "AT2G26440", #PME12
+                    "AT5G13870", #XTH5 #Start of xyloglucan synthesis and modification
+                    "AT2G14620", #XTH10
+                    "AT4G14130", #XTH15
+                    "AT4G25810", #XTH23
+                    "AT2G36870", #XTH32
+                    "AT5G20950", #BGLC1
+                    "AT5G63180", #PLL15 #Start of pectin biosynthesis and modification
                     "AT1G11580", #PME18
-                    "AT5G19730", #PME53
-                    "AT1G05310", #PME8
-                    "AT5G63180", #PLL15
                     "AT1G67750", #PLL16
-                    "AT3G07010", #PLL20
-                    "AT3G29360", #UGD2
-                    "AT5G03260", #LAC11 #Start of lignin biosynthesis and modification
+                    "AT5G19730", #PME53
+                    "AT4G01070", #UGT72B1 #Start of lignin biosynthesis and modification
+                    "AT5G03260", #LAC11 
                     "AT5G60020", #LAC17
                     "AT2G38080", #LAC4
                     "AT4G36220", #FAH1
                     "AT4G34050", #CCOAOMT1
                     "AT1G67980", #CCOAMT
-                    "AT5G05340", #PER52
-                    "AT4G01070" #UGT72B1
+                    "AT5G05340" #PER52
                     )
 
 genes.df <- domcon.710[domcon.710$ensembl_gene_id %in% cellwall.genes,]
@@ -143,21 +136,21 @@ colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Contr
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
 
-rownames(genes.df2) <- c("Probable xyloglucan endotransglucosylase/\nhydrolase protein B",
+rownames(genes.df2) <- c("Glucuronoxylan 4-O-methyltransferase 3",
+                         "Probable xyloglucan endotransglucosylase/\nhydrolase protein B",
                          "Probable xyloglucan endotransglucosylase/\nhydrolase protein 10",
                          "Xyloglucan endotransglucosylase/\nhydrolase 2-like",
-                         "Glucuronoxylan 4-O-methyltransferase 3",
-                         "Pectinesterase",
-                         "Probable pectinesterase 53",
                          "Pectate lyase-like",
+                         "Pectinesterase",
                          "Probable pectate lyase 5",
+                         "Probable pectinesterase 53",
+                         "Hydroquinone glucosyltransferase-like",
                          "Laccase-11-like",
                          "Laccase-17-like (1)",
                          "Laccase-17-like (2)",
                          "Laccase-17-like (3)",
                          "Laccase-17-like (4)",
-                         "Laccase-17-like (5)",
-                         "Hydroquinone glucosyltransferase-like")
+                         "Laccase-17-like (5)")
 
 genes.mat <- as.matrix(genes.df2)
 
@@ -178,8 +171,8 @@ column_split[4:6] = "Domatia\n 588710"
 column_split[7:9] = "Control\n 588711"
 column_split[10:12] = "Domatia\n 588711"
 
-row_split = rep("Xyloglucan\nbiosynthesis\nand modification", 15)
-row_split[4] = "Xylan biosynthesis\n and modification"
+row_split = rep("Xylan biosynthesis\n and modification", 15)
+row_split[2:4] = "Xyloglucan\nbiosynthesis\nand modification" 
 row_split[5:8] = "Pectin biosynthesis\n and modification"
 row_split[9:15] = "Lignin biosynthesis\n and modification"
 
@@ -244,11 +237,8 @@ meta.genes <- c("AT5G09220", #AAP2 #Start of amino acid transport
                 "AT1G12240", #VIN2
                 "AT1G47840", #HXK3
                 "AT4G10260", #FRK4
-                "AT5G49690", #UGT91C1
-                "AT1G22360", #AtUGT85A2
                 "AT1G22400", #UGT85A1
                 "AT4G01070", #GT72B1
-                "AT2G43820", #GT
                 "AT5G40390", #RFS5 
                 "AT4G15920", #SWEET17 #Start of carb transport
                 "AT1G22710", #SUC2
@@ -257,7 +247,28 @@ meta.genes <- c("AT5G09220", #AAP2 #Start of amino acid transport
 
 genes.df <- domcon.710[domcon.710$ensembl_gene_id %in% meta.genes,]
 genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
-genes.df1 <- genes.df1[order(match(genes.df1$ensembl_gene_id,meta.genes)),]
+
+meta.genes <- c("LOC117919329",
+                "LOC117911152",
+                "LOC117906424",
+                "LOC117922296",
+                "LOC117931209",
+                "LOC117927530",
+                "LOC117918186",
+                "LOC117904968",
+                "LOC117904705",
+                "LOC117904001",
+                "LOC117906935",
+                "LOC117927423",
+                "LOC117906602",
+                "LOC117934381",
+                "LOC117914224",
+                "LOC117907578",
+                "LOC117929127",
+                "LOC117913848",
+                "LOC117907709")
+
+genes.df1 <- genes.df1[order(match(genes.df1$Gene,meta.genes)),]
 genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
 colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
                          "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
@@ -267,25 +278,24 @@ colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Contr
 rownames(genes.df2) <- c("Amino acid permease 3-like (1)",
                          "Amino acid permease 3-like (2)",
                          "Amino acid permease 8-like",
-                         "Cationic amino acid transporter 6",
-                         "WAT1-related protein",
                          "Amino acid transporter AVT1I-like (1)",
                          "Amino acid transporter AVT1I-like (2)",
-                         "Sucrose synthase 7-like",
+                         "Cationic amino acid transporter 6",
+                         "WAT1-related protein",
+                         
                          "Acid beta-fructofuranosidase",
-                         "Hexokinase-2",
-                         "Probable fructokinase-5",
-                         "UDP-glycosyltransferase 91C1-like",
-                         "7-deoxyloganetin glucosyltransferase-like",
-                         "7-deoxyloganetic acid glucosyltransferase-like",
-                         "Hydroquinone glucosyltransferase-like",
-                         "UDP-glycosyltransferase 74F2-like",
                          "Galactinol--sucrose galactosyltransferase-like (1)",
                          "Galactinol--sucrose galactosyltransferase-like (2)",
-                         "Bidirectional sugar transporter SWEET17",
-                         "Sucrose transport protein SUC2-like",
+                         "Hexokinase-2",
+                         "Hydroquinone glucosyltransferase-like",
+                         "Probable fructokinase-5",
+                         "Sucrose synthase 7-like",
+                         "7-deoxyloganetic acid glucosyltransferase-like",
                          "Annexin D1",
-                         "Annexin D4-like")
+                         "Annexin D4-like",
+                         "Bidirectional sugar transporter SWEET17",
+                         "Sucrose transport protein SUC2-like"
+)
 
 genes.mat <- as.matrix(genes.df2)
 
@@ -306,9 +316,9 @@ column_split[4:6] = "Domatia\n 588710"
 column_split[7:9] = "Control\n 588711"
 column_split[10:12] = "Domatia\n 588711"
 
-row_split = rep("Amino acid\ntransport", 22)
-row_split[8:18] = "Carbohydrate\nmetabolism"
-row_split[19:22] = "Carbohydrate\ntransport"
+row_split = rep("Amino acid\ntransport", 19)
+row_split[8:15] = "Carbohydrate\nmetabolism"
+row_split[16:19] = "Carbohydrate\ntransport"
 
 #Legend on bottom
 htmp = Heatmap(temp1, 
@@ -374,18 +384,40 @@ auxin.genes <- c("AT5G57390", #AIL5 #Start of auxin synthesis regulators
 
 genes.df <- domcon.710[domcon.710$ensembl_gene_id %in% auxin.genes,]
 genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
-genes.df1 <- genes.df1[order(match(genes.df1$ensembl_gene_id,auxin.genes)),]
+
+auxin.genes <- c("LOC117912227",
+                 "LOC117909560",
+                 "LOC117904545",
+                 "LOC117913760",
+                 "LOC117907723",
+                 "LOC117930860",
+                 "LOC117915453",
+                 "LOC117921623",
+                 "LOC117918426",
+                 "LOC117913897",
+                 "LOC117915419",
+                 "LOC117925429",
+                 "LOC117913455",
+                 "LOC117911255",
+                 "LOC117911264",
+                 "LOC117911257",
+                 "LOC117911844",
+                 "LOC117911770",
+                 "LOC117911785",
+                 "LOC117910302")
+
+genes.df1 <- genes.df1[order(match(genes.df1$Gene,auxin.genes)),]
 genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
 colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
                          "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
 
-rownames(genes.df2) <- c("GH3.6", "GH3.17-like", "Auxin efflux carrier component 1c",
-  "Auxin efflux carrier component 3-like", "WAT1", "IAA14", "IAA13-like", "Auxin-induced protein 22D-like (1)",
-  "Auxin-induced protein 22D-like (2)", "AUX22-like", "IAA9-like", "IAA27",
-  "LOC117913455", "SAUR21-like (1)", "SAUR21-like (2)", "SAUR21-like (3)", "X15-like",
-  "SAUR64-like", "SAUR67-like", "SAUR68-like")
+rownames(genes.df2) <- c("GH3.17-like", "GH3.6","Auxin efflux carrier component 1c",
+  "Auxin efflux carrier component 3-like", "WAT1", "Auxin-induced protein 22D-like (1)",
+  "Auxin-induced protein 22D-like (2)", "AUX22-like", "IAA9-like","IAA13-like","IAA14", "IAA27",
+  "LOC117913455", "SAUR21-like (1)", "SAUR21-like (2)", "SAUR21-like (3)", 
+  "SAUR64-like", "SAUR67-like", "SAUR68-like", "X15-like")
 
 genes.mat <- as.matrix(genes.df2)
 
@@ -459,53 +491,75 @@ htmp = Heatmap(temp1,
 draw(htmp, heatmap_legend_side="bottom")
 ######################## MAKE FIGURE 6 ########################
 
-biotic.genes <- c("AT1G12220", #NBS-LRR class
-                  "AT3G51570",
+biotic.genes <- c("AT3G51570", #NBS-LRR class
                   "AT5G17680",
                   "AT5G36930",
+                  "AT1G12220",
                   "AT3G61460", #BRH1 #Chitin
-                  "AT5G63380", #JA and methyljasmonate biosynthesis #JA signaling
-                  "AT1G20510",
-                  "AT4G08850",
-                  "AT1G19640",
+                  "AT4G08850", #JA and methyljasmonate biosynthesis #JA signaling
+                  "AT1G19640", #dup
+                  "AT1G20510", #dup
+                  "AT5G63380", 
                   "AT2G41370", #JA mediated signaling pathway
                   "AT1G56650", #excluding response to JA for now - might be a good supplement figure
                   "AT4G16740", #Terpene and volatile biosynthesis
                   "AT5G23960", 
                   "AT3G25810",
-                  "AT3G11480")
+                  "AT3G11480" ) #trip
 
 genes.df <- domcon.710[domcon.710$ensembl_gene_id %in% biotic.genes,]
 genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
-genes.df1 <- genes.df1[order(match(genes.df1$ensembl_gene_id, biotic.genes)),]
+
+biotic.genes <- c("LOC117922784",
+                  "LOC117906823",
+                  "LOC117918810",
+                  "LOC117915023",
+                  "LOC117918811",
+                  "LOC117922192",
+                  "LOC117932716",
+                  "LOC117927279",
+                  "LOC117912048",
+                  "LOC117913091",
+                  "LOC117907749",
+                  "LOC117907748",
+                  "LOC117929742",
+                  "LOC117921328",
+                  "LOC117931042",
+                  "LOC117909463",
+                  "LOC117927005",
+                  "LOC117920973",
+                  "LOC117912049",
+                  "LOC117913090",
+                  "LOC117926779")
+
+genes.df1 <- genes.df1[order(match(genes.df1$Gene, biotic.genes)),]
 genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
 colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
                          "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
 
-rownames(genes.df2) <- c("Probable disease resistance protein\nAt1g61300",
-                         "Disease resistance protein RPV1-like (1)",
+rownames(genes.df2) <- c("Disease resistance protein RPV1-like (1)",
                          "Disease resistance protein RPV1-like (2)",
-                         "disease resistance protein RPV1-like (3)",
+                         "Disease resistance protein RPV1-like (3)",
                          "Disease resistance protein RUN1-like (1)",
                          "Disease resistance protein RUN1-like (2)",
+                         "Probable disease resistance protein\nAt1g61300",
                          "E3 ubiquitin-protein ligase RHA1B-like",
-                         "4-coumarate--CoA ligase-like 9",
-                         "4-coumarate--CoA ligase-like 5 (1)",
-                         "4-coumarate--CoA ligase-like 5 (2)",
                          "MDIS1-interacting receptor like kinase 2-like",
                          "Salicylate carboxymethyltransferase-like (1)",
                          "Salicylate carboxymethyltransferase-like (2)",
+                         "4-coumarate--CoA ligase-like 5 (1)",
+                         "4-coumarate--CoA ligase-like 5 (2)",
+                         "4-coumarate--CoA ligase-like 9",
                          "BTB/POZ domain and ankyrin\nrepeat-containing protein NOOT2",
                          "Transcription factor MYB114-like",
-                         "Probable terpene synthase 9 (1)",
                          "(-)-germacrene D synthase-like",
+                         "Probable terpene synthase 9 (1)",
                          "Probable terpene synthase 9 (2)",
                          "Salicylate carboxymethyltransferase-like (3)",
-                         "7-methylxanthosine synthase 1-like",
-                         "Salicylate carboxymethyltransferase-like (4)"
-                         )
+                         "Salicylate carboxymethyltransferase-like (4)",
+                         "7-methylxanthosine synthase 1-like")
 
 genes.mat <- as.matrix(genes.df2)
 
@@ -521,9 +575,9 @@ column_split[10:12] = "Domatia\n 588711"
 
 row_split = rep("NBS-LRR class", 21)
 row_split[7] = "Chitin responsive"
-row_split[8:14] = "JA and methyljasmonate\n biosynthesis"
-row_split[15:16] = "JA-mediated\n signaling pathway"
-row_split[17:21] = "Terpene and\n volatile biosynthesis"
+row_split[8:13] = "JA and methyljasmonate\n biosynthesis"
+row_split[14:15] = "JA-mediated\n signaling pathway"
+row_split[16:21] = "Terpene and\n volatile biosynthesis"
 
 #Legend on bottom
 htmp = Heatmap(temp1, 
@@ -558,25 +612,25 @@ htmp = Heatmap(temp1,
 draw(htmp, heatmap_legend_side="bottom")
 
 ######################## MAKE FIGURE 7 ########################
-dom.genes <- c("LOC117934313", #Auxin
-               "LOC117912178",
+dom.genes <- c("LOC117912178", #Auxin
+               "LOC117934313", 
                "LOC117912293",
-               "LOC117933133", #Cell wall 
+               "LOC117933133", #Cell wall
                "LOC117930032",
                "LOC117906993",
                "LOC117927833", #Disease resistance
-               "LOC117904283", #Synthesis and transport of macromolecules
-               "LOC117922028",
-               "LOC117915398", #Miscellaneous
-               "LOC117923968",
-               "LOC117927588",
-               "LOC117921084",
+               "LOC117922028", #Synthesis and transport of macromolecules
+               "LOC117904283",
+               "LOC117918954",  #Miscellaneous
+               "LOC117923426", 
                "LOC117927721",
-               "LOC117910441",
+               "LOC117921084",
                "LOC117929261",
-               "LOC117918954",
-               "LOC117923426",
-               "LOC117912434") 
+               "LOC117910441",
+               "LOC117912434",
+               "LOC117915398", 
+               "LOC117923968",
+               "LOC117927588") 
 
 genes.df <- domdom[domdom$Gene %in% dom.genes,]
 #genes.df1 <- genes.df[genes.df$Gene %in% domcon.711$Gene,] # Run if we only want genes shared between genotypes
@@ -587,25 +641,25 @@ colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Contr
                          "588711 1 Control", "588711 2 Control", "588711 3 Control",
                          "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
 
-rownames(genes.df2) <- c("Stilbene synthase 3-like",
-                         "PIN-LIKES 3-like",
+rownames(genes.df2) <- c("PIN-LIKES 3-like",
+                         "Stilbene synthase 3-like",
                          "2-oxoglutarate-dependent dioxygenase DAO-like",
                          "Anthocyanidin 3-O-glucosyltransferase 5-like",
                          "Cellulose synthase-like protein G3",
-                         "Uncharacterized LOC117906993",
+                         "Uncharacterized LOC117906993",       
                          "Disease resistance protein RPP8-like",
-                         "Organic cation/carnitine transporter 1",
                          "Beta-amyrin synthase",
-                         "Uncharacterized LOC117915398",
-                         "Uncharacterized LOC117923968",
-                         "Uncharacterized LOC117927588",
-                         "Heterogeneous nuclear ribonucleoprotein Q",
-                         "GDSL esterase/lipase At5g03610-like",
-                         "Uncharacterized LOC117910441",
-                         "Pentatricopeptide repeat-containing\nprotein At5g46100-like",
+                         "Organic cation/carnitine transporter 1",
                          "Cyclin-D5-1-like",
                          "Cytochrome b561 domain-containing\nprotein At4g18260",
-                         "Uncharacterized LOC117912434")
+                         "GDSL esterase/lipase At5g03610-like",
+                         "Heterogeneous nuclear ribonucleoprotein Q",
+                         "Pentatricopeptide repeat-containing\nprotein At5g46100-like",
+                         "Uncharacterized LOC117910441",
+                         "Uncharacterized LOC117912434",
+                         "Uncharacterized LOC117915398",
+                         "Uncharacterized LOC117923968",
+                         "Uncharacterized LOC117927588")
 
 genes.mat <- as.matrix(genes.df2)
 logt <- log(genes.mat+0.01)

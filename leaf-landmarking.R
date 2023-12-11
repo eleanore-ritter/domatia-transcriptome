@@ -362,7 +362,7 @@ p.both.mshape <- ggplot() +
         plot.background=element_blank(),
         legend.title = element_blank(),
         legend.text = element_text(size=12),
-        #plot.margin=unit(c(-1,-2,-1,-2), "pt"),
+        plot.margin=unit(c(-1,-2,-1,-2), "pt"),
         legend.position = "bottom") +
   guides(col = guide_legend(override.aes = list(alpha = 1)))
 
@@ -438,9 +438,8 @@ mpcB <- ggplot(g710pc, aes(x=PC3, y=PC4)) +
         legend.key.size = unit(0.25, "cm"),
         legend.text = element_text(colour="black", size=10))
 
-plot_grid(mpcA, mpcB, ncol=2, nrow=1, rel_widths = c(1,1.4), align = "h", labels = "AUTO")
+plot_grid(mpcA, NULL, mpcB, ncol=1, nrow=3, rel_heights = c(1,0.1, 1), align = "v", labels = "auto")
 
-pc.grid <- plot_grid(mpcA, mpcB, ncol=2, nrow=1, 
-                     align="tblr", labels = c('B', 'C'))
+pc.grid <- plot_grid(mpcA, NULL, mpcB, ncol=1, nrow=3,  rel_heights = c(1,0.1, 1), align = "v", labels = c('b', '', 'c'))
 
-plot_grid(p.both.mshape, pc.grid, ncol=1, nrow=2, align = "tblr", rel_heights = c(1,0.75), labels = c('A', '', '')) 
+plot_grid(p.both.mshape, pc.grid, ncol=2, nrow=1, align = "tblr", rel_widths = c(1,.85), labels = c('a', '', '')) 
