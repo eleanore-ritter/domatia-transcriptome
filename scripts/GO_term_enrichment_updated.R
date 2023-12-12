@@ -1,10 +1,11 @@
 # Set working directory and load necessary packages
 setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library("topGO")
 library(dplyr)
 library(tidyr)
+library(ggplot2)
 
 # NOTE: a version of the old code that contains the code for NOT using parents (as well as the 
 # code that was used to get the parents) back in is at the bottom, saved for a rainy day
@@ -81,6 +82,8 @@ all_res_BP_710_final=all_res_BP_710_final[order(all_res_BP_710_final$p.adj),]
 
 sign_res_BP_710 <- all_res_BP_710[all_res_BP_710$weightFisher<0.05,]
 sign_res_BP_710_final <- all_res_BP_710_final[all_res_BP_710_final$p.adj<0.05,]
+
+write.csv(all_res_BP_710_final, "GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
 
 ## Set up as topGOdata with MF ontology
 GODATA <- new("topGOdata",
@@ -212,6 +215,8 @@ all_res_BP_711_final=all_res_BP_711_final[order(all_res_BP_711_final$p.adj),]
 sign_res_BP_711 <- all_res_BP_711[all_res_BP_711$weightFisher<0.05,]
 sign_res_BP_711_final <- all_res_BP_711_final[all_res_BP_711_final$p.adj<0.05,]
 
+write.csv(all_res_BP_711_final, "GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
+
 ## Set up as topGOdata with MF ontology
 GODATA <- new("topGOdata",
               description = "Domatia vs Leaf in 588711",
@@ -283,18 +288,29 @@ cc.overlap <- merge(sign_res_CC_710_final, sign_res_CC_711_final, by="GO.ID")
 writeClipboard(paste0(as.vector(cc.overlap$GO.ID)))
 
 ######################## MAKE PLOT OF OVERLAPPING BP TERMS ########################
+all_res_BP_710_final <- read.csv("GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-BP.csv")
+all_res_BP_711_final <- read.csv("GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-BP.csv")
+
+sign_res_BP_710_final <- all_res_BP_710_final[all_res_BP_710_final$p.adj<0.05 ,]
+sign_res_BP_711_final <- all_res_BP_711_final[all_res_BP_711_final$p.adj<0.05 ,]
+
 # Look at overlap for all significantly enriched GO terms
 sign_res_BP_710_final$Genotype <- c("SDG")
 sign_res_BP_711_final$Genotype <- c("LDG")
 tempa <- sign_res_BP_710_final[sign_res_BP_710_final$GO.ID %in% sign_res_BP_711_final$GO.ID ,]
 tempb <- sign_res_BP_711_final[sign_res_BP_711_final$GO.ID %in% sign_res_BP_710_final$GO.ID ,]
 sign.overlap <- unique(rbind(tempa, tempb))
-sign.overlap$Fold.Enrichment <- (sign.overlap$Significant / sign.overlap$Expected)
+sign.overlap$Log.Fold.Enrichment <- log(sign.overlap$Significant / sign.overlap$Expected)
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("anatomical structure formation involved ...",
+                                                   "anatomical structure formation involved in morphogenesis", x)))
+sign.overlap$fullbeans <-  paste0(sign.overlap$Term, sep = " (", sign.overlap$GO.ID, sep = ")")
 
-ggplot(sign.overlap, (aes(x=Genotype, y=Term, color = as.numeric(Fold.Enrichment), size=as.numeric(Significant)))) + 
+ggplot(sign.overlap, (aes(x=Genotype, y=fullbeans, color = as.numeric(Log.Fold.Enrichment), size=as.numeric(Significant)))) + 
   geom_point() +
-  scale_color_gradient(low = "orange", high = "blue", name = "Fold Enrichment") +
+  scale_color_gradient(low = "orange", high = "blue", name = "Log Fold Enrichment") +
   scale_y_discrete(limits=rev) +
+  scale_x_discrete(limits=rev) +
   theme_classic() +
   ylab("GO Term (Biological Process)") +
   scale_size_continuous(name = "DEGs") +
