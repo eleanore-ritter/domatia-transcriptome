@@ -83,7 +83,7 @@ all_res_BP_710_final=all_res_BP_710_final[order(all_res_BP_710_final$p.adj),]
 sign_res_BP_710 <- all_res_BP_710[all_res_BP_710$weightFisher<0.05,]
 sign_res_BP_710_final <- all_res_BP_710_final[all_res_BP_710_final$p.adj<0.05,]
 
-write.csv(all_res_BP_710_final, "GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
+#write.csv(all_res_BP_710_final, "GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
 
 ## Set up as topGOdata with MF ontology
 GODATA <- new("topGOdata",
@@ -113,6 +113,8 @@ all_res_MF_710_final=all_res_MF_710_final[order(all_res_MF_710_final$p.adj),]
 sign_res_MF_710 <- all_res_MF_710[all_res_MF_710$weightFisher<0.05,]
 sign_res_MF_710_final <- all_res_MF_710_final[all_res_MF_710_final$p.adj<0.05,]
 
+#write.csv(all_res_MF_710_final, "GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-MF.csv", row.names = FALSE)
+
 ## Set up as topGOdata with CC ontology
 GODATA <- new("topGOdata",
               description = "Domatia vs Leaf in 588710",
@@ -140,6 +142,8 @@ all_res_CC_710_final=all_res_CC_710_final[order(all_res_CC_710_final$p.adj),]
 
 sign_res_CC_710 <- all_res_CC_710[all_res_CC_710$weightFisher<0.05,]
 sign_res_CC_710_final <- all_res_CC_710_final[all_res_CC_710_final$p.adj<0.05,]
+
+#write.csv(all_res_CC_710_final, "GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-CC.csv", row.names = FALSE)
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V LEAF IN 588711 ######################## 
 
@@ -215,7 +219,7 @@ all_res_BP_711_final=all_res_BP_711_final[order(all_res_BP_711_final$p.adj),]
 sign_res_BP_711 <- all_res_BP_711[all_res_BP_711$weightFisher<0.05,]
 sign_res_BP_711_final <- all_res_BP_711_final[all_res_BP_711_final$p.adj<0.05,]
 
-write.csv(all_res_BP_711_final, "GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
+#write.csv(all_res_BP_711_final, "GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-BP.csv", row.names = FALSE)
 
 ## Set up as topGOdata with MF ontology
 GODATA <- new("topGOdata",
@@ -245,6 +249,8 @@ all_res_MF_711_final=all_res_MF_711_final[order(all_res_MF_711_final$p.adj),]
 sign_res_MF_711 <- all_res_MF_711[all_res_MF_711$weightFisher<0.05,]
 sign_res_MF_711_final <- all_res_MF_711_final[all_res_MF_711_final$p.adj<0.05,]
 
+#write.csv(all_res_MF_711_final, "GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-MF.csv", row.names = FALSE)
+
 ## Set up as topGOdata with CC ontology
 GODATA <- new("topGOdata",
               description = "Domatia vs Leaf in 588711",
@@ -273,6 +279,8 @@ all_res_CC_711_final=all_res_CC_711_final[order(all_res_CC_711_final$p.adj),]
 
 sign_res_CC_711 <- all_res_CC_711[all_res_CC_711$weightFisher<0.05,]
 sign_res_CC_711_final <- all_res_CC_711_final[all_res_CC_711_final$p.adj<0.05,]
+
+#write.csv(all_res_CC_711_final, "GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-CC.csv", row.names = FALSE)
 
 ######################## OVERLAP BETWEEN ENRICHED GO TERMS ########################
 # BP
@@ -313,6 +321,80 @@ ggplot(sign.overlap, (aes(x=Genotype, y=fullbeans, color = as.numeric(Log.Fold.E
   scale_x_discrete(limits=rev) +
   theme_classic() +
   ylab("GO Term (Biological Process)") +
+  scale_size_continuous(name = "DEGs") +
+  theme(axis.text.x = element_text(size=11, face="bold"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=11, face="bold"))
+
+######################## MAKE PLOT OF OVERLAPPING MF TERMS ########################
+all_res_MF_710_final <- read.csv("GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-MF.csv")
+all_res_MF_711_final <- read.csv("GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-MF.csv")
+
+sign_res_MF_710_final <- all_res_MF_710_final[all_res_MF_710_final$p.adj<0.05 ,]
+sign_res_MF_711_final <- all_res_MF_711_final[all_res_MF_711_final$p.adj<0.05 ,]
+
+# Look at overlap for all significantly enriched GO terms
+sign_res_MF_710_final$Genotype <- c("SDG")
+sign_res_MF_711_final$Genotype <- c("LDG")
+tempa <- sign_res_MF_710_final[sign_res_MF_710_final$GO.ID %in% sign_res_MF_711_final$GO.ID ,]
+tempb <- sign_res_MF_711_final[sign_res_MF_711_final$GO.ID %in% sign_res_MF_710_final$GO.ID ,]
+sign.overlap <- unique(rbind(tempa, tempb))
+sign.overlap$Log.Fold.Enrichment <- log(sign.overlap$Significant / sign.overlap$Expected)
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("amino acid transmembrane transporter act...",
+                                                   "amino acid transmembrane transporter activity", x)))
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("carboxylic acid transmembrane transporte...",
+                                                   "carboxylic acid transmembrane transporter activity", x)))
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("inorganic molecular entity transmembrane...",
+                                                   "inorganic molecular entity transmembrane transporter activity", x)))
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("organic acid transmembrane transporter a...",
+                                                   "organic acid transmembrane transporter activity", x)))
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("sequence-specific double-stranded DNA bi...",
+                                                   "sequence-specific double-stranded DNA binding", x)))
+sign.overlap <- data.frame(lapply(sign.overlap,
+                                  function(x) gsub("transcription regulatory region sequence...",
+                                                   "transcription regulatory region sequence-specific DNA binding", x)))
+sign.overlap$fullbeans <-  paste0(sign.overlap$Term, sep = " (", sign.overlap$GO.ID, sep = ")")
+
+ggplot(sign.overlap, (aes(x=Genotype, y=fullbeans, color = as.numeric(Log.Fold.Enrichment), size=as.numeric(Significant)))) + 
+  geom_point() +
+  scale_color_gradient(low = "orange", high = "blue", name = "Log Fold Enrichment") +
+  scale_y_discrete(limits=rev) +
+  scale_x_discrete(limits=rev) +
+  theme_classic() +
+  ylab("GO Term (Molecular Function)") +
+  scale_size_continuous(name = "DEGs") +
+  theme(axis.text.x = element_text(size=11, face="bold"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size=11, face="bold"))
+
+######################## MAKE PLOT OF OVERLAPPING CC TERMS ########################
+all_res_CC_710_final <- read.csv("GO-term-enrichment/Upregulated-genes-588710-Con-vs-Dom-GO-terms-CC.csv")
+all_res_CC_711_final <- read.csv("GO-term-enrichment/Upregulated-genes-588711-Con-vs-Dom-GO-terms-CC.csv")
+
+sign_res_CC_710_final <- all_res_CC_710_final[all_res_CC_710_final$p.adj<0.05 ,]
+sign_res_CC_711_final <- all_res_CC_711_final[all_res_CC_711_final$p.adj<0.05 ,]
+
+# Look at overlap for all significantly enriched GO terms
+sign_res_CC_710_final$Genotype <- c("SDG")
+sign_res_CC_711_final$Genotype <- c("LDG")
+tempa <- sign_res_CC_710_final[sign_res_CC_710_final$GO.ID %in% sign_res_CC_711_final$GO.ID ,]
+tempb <- sign_res_CC_711_final[sign_res_CC_711_final$GO.ID %in% sign_res_CC_710_final$GO.ID ,]
+sign.overlap <- unique(rbind(tempa, tempb))
+sign.overlap$Log.Fold.Enrichment <- log(sign.overlap$Significant / sign.overlap$Expected)
+sign.overlap$fullbeans <-  paste0(sign.overlap$Term, sep = " (", sign.overlap$GO.ID, sep = ")")
+
+ggplot(sign.overlap, (aes(x=Genotype, y=fullbeans, color = as.numeric(Log.Fold.Enrichment), size=as.numeric(Significant)))) + 
+  geom_point() +
+  scale_color_gradient(low = "orange", high = "blue", name = "Log Fold Enrichment") +
+  scale_y_discrete(limits=rev) +
+  scale_x_discrete(limits=rev) +
+  theme_classic() +
+  ylab("GO Term (Cellular Component)") +
   scale_size_continuous(name = "DEGs") +
   theme(axis.text.x = element_text(size=11, face="bold"),
         axis.title.x = element_blank(),
