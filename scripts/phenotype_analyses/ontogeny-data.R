@@ -50,12 +50,43 @@ data$Leaf_Width <- as.numeric(data$Leaf_Width)
 
 col.711 <- c("#024F4A")
 col.710 <- c("#05B384")
+col.line <- c("#1158f6") 
 
-ggplot(data, aes(x=Leaf_Width, y=Radius, color=Genotype)) +
-  geom_point(size = 2, alpha = 0.8) +
-  scale_color_manual(values = c(col.710, col.711)) +
+lline1 <- c(2.6 ,2.6)
+lline2 <- c(0, 0.125)
+lline <- data.frame(lline1, lline2)
+colnames(lline) <- c("Leaf_Width", "Radius")
+lline$Genotype <- c("line")
+
+uline1 <- c(5.8 ,5.8)
+uline2 <- c(0, 0.125)
+uline <- data.frame(uline1, uline2)
+colnames(uline) <- c("Leaf_Width", "Radius")
+uline$Genotype <- c("line")
+
+ggplot(data=data, aes(x=Leaf_Width, y=Radius, color=Genotype)) +
+  geom_point(size = 2, alpha = 0.9) +
+  scale_color_manual(values = c(col.710, col.711, col.line),
+                     labels = c("588710 (SDG)", "588711 (LDG)", NULL)) +
   theme_classic() +
-  geom_smooth(method='lm')
+  geom_smooth(method='lm') +
+  scale_y_continuous(limits=c(0,0.125), expand = c(0,0) ) +
+  scale_x_continuous(expand = c(0,0) ) +
+  geom_path(data=lline, linewidth=2) +
+  geom_path(data=uline, linewidth=2) +
+  xlab("Leaf Width (cm)") +
+  ylab("Domatium Radius (mm)") +
+  theme(axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+        axis.text.y = element_text(size=10),
+        axis.text.x = element_text(size=10),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12)) 
 
 ########################## STATS ##########################
+lmtest<-lm(Leaf_Width~Radius, data=data)
+summary(test)
 
+midage <- data[data$Leaf_Width>2.6 & data$Leaf_Width<5.8 ,1]
+oldage <- data[data$Leaf_Width>5.8 ,1]
+ttest <- t.test(midage, oldage)

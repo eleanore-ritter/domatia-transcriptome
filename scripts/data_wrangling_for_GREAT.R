@@ -2,7 +2,7 @@
 #setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
 setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
-library("plot_ly")
+library("plotly")
 
 ######################## DATA WRANGLING FOR GREAT ########################
 
@@ -116,3 +116,11 @@ heatmap(flower.vvi.Z, Rowv = NA, Colv = NA, margins=c(10,10))
 temp <- log2(genes.mat + 1)
 genes.mat1 <- temp[300:350,]
 plot_ly(x=colnames(genes.mat1), y = rownames(genes.mat1), z = genes.mat1, type = "heatmap") 
+
+######################## HOW MANY DOMATIA GENES ARE EXPRESSED IN FLOWERS? ########################
+countsv <- unlist(counts)
+quantile(countsv,prob=0.25) # the 25% quantile of expressed reads is 17.45 reads
+
+data1[data1$`Inflorescence:SRR360525`>17.45 ,]
+
+
