@@ -743,3 +743,85 @@ temp5 <- merge(dict, domcon.711, by.x="genes", by.y="Gene", all = FALSE)
 temp6 <- temp5 %>%
   group_by(genes) %>%
   slice(which.max(!is.na(products)))
+
+######################## MAKE FIGURE S7 ########################
+
+genes <- c("LOC117920057", #NTT
+           "LOC117927982", #NTT
+           "LOC117913129", #ZFP1 #ONLY 710
+           "LOC117922402", #ZFP1
+           "LOC117910419", #ZFP4
+           "LOC117915013", #ZFP6
+           "LOC117934410", #SPL13 #ONLY 710
+           "LOC117912971") #SPL12 #ONLY 711
+          
+
+data <- rbind(domcon.710, domcon.711[!rownames(domcon.711) %in% rownames(domcon.710),])
+
+genes.df <- data[data$Gene %in% genes,]
+genes.df1 <- genes.df[order(match(genes.df$Gene,genes)),]
+genes.df2 <- genes.df1[c(23,24,25,26,27,28,29,30,31,32,33,34)] # Modify if code above is run
+colnames(genes.df2) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
+                         "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
+                         "588711 1 Control", "588711 2 Control", "588711 3 Control",
+                         "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
+
+rownames(genes.df2) <- c("zinc finger protein WIP2",
+                         "zinc finger protein WIP2-like",
+                         "zinc finger protein 1-like",
+                         "zinc finger protein 1",
+                         "zinc finger protein 4-like",
+                         "zinc finger protein KNUCKLES-like",
+                         "squamosa promoter-binding-like protein 13A",
+                         "squamosa promoter-binding-like protein 3")
+
+genes.mat <- as.matrix(genes.df2)
+
+# #Log transformed values below - I think it looks better not transformed
+# logt <- log(genes.mat+0.001)
+# temp1 <- t(apply(logt, 1, scale))
+# col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
+#                     colorRampPalette(c("blue","white","red"))(256))
+# Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
+
+temp1 <- t(apply(genes.df2, 1, scale))
+col_fun<-colorRamp2(seq(min(temp1),max(temp1),length.out=256),
+                    colorRampPalette(c("blue","white","red"))(256))
+Heatmap(temp1, cluster_rows = FALSE, cluster_columns = FALSE,col=col_fun)
+
+column_split = rep("Control\n 588710", 12)
+column_split[4:6] = "Domatia\n 588710"
+column_split[7:9] = "Control\n 588711"
+column_split[10:12] = "Domatia\n 588711"
+
+row_split = rep("", 8)
+
+
+#Legend on bottom
+htmp = Heatmap(temp1, 
+               cluster_rows = FALSE, 
+               cluster_columns = FALSE,
+               col=col_fun,
+               heatmap_legend_param = list(
+                 title = "Z-Score", 
+                 border = "black", 
+                 legend_width = unit(6, "cm"),
+                 title_gp = gpar(size = 12, fontface = "bold"),
+                 direction = "horizontal"),
+               column_split = factor(column_split, levels = c("Control\n 588710", "Domatia\n 588710", "Control\n 588711", "Domatia\n 588711")),
+               cluster_column_slices = FALSE,
+               column_gap = unit(2, "mm"),
+               border = TRUE,
+               row_split = factor(row_split, levels = c("")),
+               row_title_rot = 0,
+               row_gap = unit(2, "mm"),
+               row_names_max_width = max_text_width(
+                 rownames(temp1), 
+                 gp = gpar(fontsize = 10)
+               ),
+               row_names_gp = gpar(fontsize = 10),
+               row_title_gp = gpar(fontsize = 12, fontface = "bold")
+)
+
+
+draw(htmp, heatmap_legend_side="bottom")
