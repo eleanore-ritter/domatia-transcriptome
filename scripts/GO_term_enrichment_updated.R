@@ -8,7 +8,7 @@ library(tidyr)
 library(ggplot2)
 
 # NOTE: a version of the old code that contains the code for NOT using parents (as well as the 
-# code that was used to get the parents) back in is at the bottom, saved for a rainy day
+# code that was used to get the parents) at the bottom, saved for a rainy day
 
 ######################## GO TERM ENRICHMENT WITH DOMATIA V LEAF IN 588710 ######################## 
 
