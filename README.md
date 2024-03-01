@@ -1,5 +1,6 @@
 **This Github repository contains scripts used in the paper titled "Small, but mitey: Investigating the molecular genetic basis for domatia development and intraspecific variation in Vitis riparia using transcriptomics".** 
 
+
 #### The scripts are organized within the following subdirectories:
 
 * **1. phenotype_analyses:** scripts for statistics and plotting of phenotype data, including domatia measurements and leaf landmark data
@@ -7,6 +8,7 @@
 * **3. differential_expression:** scripts for performing differential expression analysis with DESeq2 and plotting the results
 * **4. gene_functions:** scripts for identifying Arabidopsis orthologs of *V. riparia* genes
 * **5. misc:** miscellaneous scripts
+
 
 <p align="center">
 🍇  🍃  🕷️
