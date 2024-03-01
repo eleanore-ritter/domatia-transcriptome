@@ -3,11 +3,11 @@
 
 #### The scripts are organized within the following subdirectories:
 
-* **1. phenotype_analyses:** scripts for statistics and plotting of phenotype data, including domatia measurements and leaf landmark data
-* **2. gene_expression:** scripts for prepping RNA-seq reads and mapping them to the *V. riparia* genome with STAR
-* **3. differential_expression:** scripts for performing differential expression analysis with DESeq2 and plotting the results
-* **4. gene_functions:** scripts for identifying Arabidopsis orthologs of *V. riparia* genes
-* **5. misc:** miscellaneous scripts
+* **phenotype_analyses:** scripts for statistics and plotting of phenotype data, including domatia measurements and leaf landmark data
+* **gene_expression:** scripts for prepping RNA-seq reads and mapping them to the *V. riparia* genome with STAR
+* **differential_expression:** scripts for performing differential expression analysis with DESeq2 and plotting the results
+* **gene_functions:** scripts for identifying Arabidopsis orthologs of *V. riparia* genes
+* **misc:** miscellaneous scripts
 
 
 <p align="center">
