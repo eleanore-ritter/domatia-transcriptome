@@ -56,20 +56,6 @@ colnames(counts) <- c("Density", "Counts", "Genotype")
 col.711 <- c("#024F4A")
 col.710 <- c("#05B384")
 
-#Plotting density as a a bar plot
-# b <- ggplot(counts, aes(x=Density, y=Counts, fill=Genotype)) + 
-#   geom_bar(stat='identity', position = 'dodge') +
-#   theme_classic() +
-#   scale_fill_manual(values = c(col.710, col.711), limits = c('588710', '588711')) +
-#   theme(axis.title.x=element_text(colour="black", size=14),
-#         axis.title.y=element_text(colour="black", size=14, margin = margin(t = 0, r = 10, b = 0, l = 0)),
-#         axis.text.x=element_text(colour="black", size=14),
-#         axis.text.y = element_text(colour="black", size=14),
-#         legend.position = "right",
-#         legend.text = element_text(size = 14),
-#         legend.title = element_text(size=14)) +
-#   scale_y_continuous(expand = c(0,0))
-
 #Plotting density as a violiin plot
 b <- ggplot(data, aes(x=factor(Genotype, levels = c('588710', '588711')), y=Density, fill=Genotype)) + 
   geom_violin(alpha=0.75) + geom_jitter(shape=16, position=position_jitter(0.2)) +

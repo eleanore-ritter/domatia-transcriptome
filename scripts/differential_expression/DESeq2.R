@@ -1,5 +1,3 @@
-#NOTE: Biomart code was edited to include GO terms: , 'name_1006', 'definition_1006'
-
 # Set working directory and load necessary packages
 #setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
 setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
@@ -340,28 +338,14 @@ rm(temp1, temp2, temp3, temp4)
 # GENO ONLY
 #write.csv(geno2.final, file="DE_genes_Control_710_v_711.csv", row.names=FALSE)
 
-############################### HEATMAP ###############################
-genes <- row.names(DOM.geno)
-genes.df <- ncounts[row.names(ncounts) %in% genes,]
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(11,11))
-
-############################### COULD SEE WHICH GENES DIFFER BETWEEN LISTS ###############################
+############################### WHICH GENES DIFFER BETWEEN LISTS? ###############################
 
 temp1 <- DOM.710.final[!rownames(DOM.710.final)%in%rownames(DOM.711.final),]
 
 temp2 <- DOM.711.final[!rownames(DOM.711.final)%in%rownames(DOM.710.final),]
 
-#Could run DESeq2_Domatia_v_Leaf.R first and then get the unique genes using code below
-#temp3 <- DOM.710.final[!rownames(DOM.710.final)%in%rownames(final.deseq),]
-#temp4 <- DOM.711.final[!rownames(DOM.711.final)%in%rownames(final.deseq),]]
 
-############################### COULD SEE WHICH GENES ARE SIMILAR BETWEEN LISTS ###############################
+############################### WHICH GENES ARE SHARED BETWEEN LISTS? ###############################
 
 # What genes unique to the domatia 710 and 711 lists are differentially expressed
 # between genotypes?
@@ -405,144 +389,3 @@ e <- domcon.711[rownames(domcon.711)%in%rownames(domdom),]
 
 # Shared between control and domatia
 f <- concon[rownames(concon)%in%rownames(domdom),]
-
-############################### HEATMAPS FOR DIFFERENT GENE GROUPS ###############################
-#Plot only a subset - cell wall genes
-cell.wall <- remove_missing(dom.both[dom.both$name_1006=="cell wall organization" | dom.both$name_1006=="polysaccharide binding",])
-genes <- rownames(cell.wall)
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(11,11))
-
-#Plot only a subset - plasma membrane genes
-membrane <- remove_missing(dom.both[dom.both$name_1006=="plasma membrane",])
-genes <- rownames(membrane)
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(11,11))
-
-#Plot only a subset - auxin genes
-auxin <- dom.both[grepl("auxin", dom.both$description)|grepl("Auxin", dom.both$description),]
-genes <- rownames(auxin)
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(10,10))
-
-#Plot only a subset - LSH genes
-genes <- c("LOC117915662", "LOC117926283", "LOC117929567", "LOC117917478", "LOC117923285")
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(10,10))
-
-#Plot only a subset - sugar genes
-genes <- c("LOC117927185", "LOC117909106", "LOC117913848", "LOC117904001", "LOC117907709", 
-           "LOC117934381", "LOC117906935", "LOC117904705")
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(10,10))
-
-#Plot only a subset - amino acid genes
-amino <- dom.both[grepl("amino acid", dom.both$description),]
-genes <- rownames(amino)
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(10,10))
-
-#Plot only a subset - those that overlap with Erika's GWAS
-genes <- c("LOC117915013", "LOC117924253", "LOC117930578", "LOC117922861",
-           "LOC117918789", "LOC117930894", "LOC117932626")
-genes.df <- ncounts[row.names(ncounts) %in% genes,] #Could use normalized counts or raw - normalized is probably better, but I need to look into it
-genes.df <- genes.df[c(2,4, 6, 1, 3, 5, 8, 10, 12, 7, 9, 11)]
-colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
-                        "588710 1 Domatia", "588710 2 Domatia", "588710 3 Domatia" ,
-                        "588711 1 Control", "588711 2 Control", "588711 3 Control",
-                        "588711 1 Domatia", "588711 2 Domatia", "588711 3 Domatia")
-genes.mat <- as.matrix(genes.df)
-heatmap(genes.mat, Rowv = NA, Colv = NA,margins=c(10,10))
-
-############################### MAKE GENE EXPRESSION PLOTS ###############################
-# Load data
-final <- read.csv("DE_genes_Domatia_v_Leaf.csv")
-row.names(final) <- final$Gene
-
-# Restructure data
-genename <- c("LOC117913091") # Define gene of interest
-gene <- final[rownames(final)%in%genename,23:34] # Get normalized reads for only the gene of interest
-gene.long <- pivot_longer(gene, everything()) # Transpose from wide to long format for plotting
-gene.long$sample <- c("1", "4", "5", "1", "4", "5", "6", "8", "9", "6", "8", "9")
-gene.long$treatment <- c("Control", "Control", "Control", "Domatia", "Domatia", "Domatia",
-                         "Control", "Control", "Control", "Domatia", "Domatia", "Domatia")
-gene.long$genotype <- c("588710", "588710","588710", "588710", "588710","588710",
-                        "588711","588711","588711","588711","588711","588711")
-
-# Plotting
-# domcolor <- c("#114b5f")
-# concolor <- c("#1a936f")
-
-domcolor <- c("#4735E9")
-concolor <- c("#000000")
-
-
-ggplot(gene.long, aes(x=sample, y=value)) +
-  geom_point(aes(color=treatment), size=3) +
-  scale_color_manual(values = c(concolor, domcolor)) +
-  theme_classic() +
-  labs(x = "", y = "Normalized Read Counts") +
-  scale_x_discrete(labels=c("1", "2", "3", "1", "2", "3")) +
-  annotate(geom = "text", x = 2 + 3 * (0:1), y = -7, label = unique(gene.long$genotype), size = 4) +
-  annotate("segment", x = 0.75, xend = 3.25, y = -5, yend = -5) +
-  annotate("segment", x = 3.75, xend = 6.25, y = -5, yend = -5) +
-  coord_cartesian(ylim = c(0, 40), clip = "off") +
-  theme(axis.title.x=element_text(colour="black", size=12),
-        axis.title.y=element_text(colour="black", size=12),
-        axis.text.x=element_text(colour="black", size=10),
-        axis.text.y = element_text(colour="black", size=10),
-        legend.position = "right",
-        legend.justification = "center",
-        legend.title = element_blank(),
-        legend.key.size = unit(0.25, "cm"),
-        legend.text = element_text(colour="black", size=12))
-
-ggplot(gene.long, aes(x=genotype, y=value)) +
-  geom_boxplot(aes(color=treatment)) +
-  geom_point(aes(color=treatment), size=3, position = position_dodge(width = 0.761), alpha=0.75) +
-  ylab("Normalized Read Counts") +
-  theme_classic() +
-  theme(axis.title.y=element_text(colour="black", size=14),
-        axis.text.y = element_text(colour="black", size=14),
-        legend.position = "bottom",
-        legend.justification = "center",
-        legend.title = element_blank(),
-        legend.key.size = unit(0.5, "cm"),
-        legend.text = element_text(colour="black", size=20)) +
-  scale_color_manual(values = c(concolor, domcolor))
