@@ -1,4 +1,4 @@
-**This Github repository contains scripts used in the paper titled "Small, but mitey: Investigating the molecular genetic basis for domatia development and intraspecific variation in *Vitis riparia* using transcriptomics".** 
+**This Github repository contains scripts used in the paper titled "Small, but mitey: Investigating the molecular genetic basis for mite domatia development and intraspecific variation in *Vitis riparia* using transcriptomics".** 
 
 
 #### The scripts are organized within the following subdirectories:
