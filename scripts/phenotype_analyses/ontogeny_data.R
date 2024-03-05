@@ -1,6 +1,6 @@
 # Set working directory and load necessary packages
 setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-#setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
 
 library(ggplot2)
 library(cowplot)
@@ -12,8 +12,8 @@ library(tidyr)
 raw.data <- read.csv("domatium ontogeny data.csv")
 
 # Extract out our two genotypes
-gen1 <- raw.data[grep("588710",raw.data$plant_code),]
-gen2 <- raw.data[grep("588711",raw.data$plant_code),]
+gen1 <- raw.data[grep("588710",raw.data$genotype),]
+gen2 <- raw.data[grep("588711",raw.data$genotype),]
 
 # Merge all radius and density data
 gen1.temp1 <- data.frame(gen1$radius_1, gen1$radius_2, gen1$radius_3, gen1$radius_4)
@@ -85,7 +85,7 @@ ggplot(data=data, aes(x=Leaf_Width, y=Radius, color=Genotype)) +
 
 ########################## STATS ##########################
 lmtest<-lm(Leaf_Width~Radius, data=data)
-summary(test)
+summary(lmtest)
 
 midage <- data[data$Leaf_Width>2.6 & data$Leaf_Width<5.8 ,1]
 oldage <- data[data$Leaf_Width>5.8 ,1]
