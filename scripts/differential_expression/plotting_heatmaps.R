@@ -1,7 +1,6 @@
 # Set working directory and load necessary packages
 
-#setwd("C:/Users/rittere5/OneDrive - Michigan State University/Vitis-domatia/")
-setwd("C:/Users/elean/OneDrive - Michigan State University/Vitis-domatia/")
+setwd("C:/Users/elean/Documents/Vitis-domatia")
 
 library(DESeq2)
 library(dplyr)
@@ -71,9 +70,6 @@ heatmap(genes.mat, col=col, Rowv=NA, Colv=NA)
 # but make it look nice.
 
 ######################## COMPARING LOG TRANSFORMED VERSUS NON-TRANSFORMED ########################
-# Plotting log transformed and non-transformed in case Chad or Marge have an issue
-# with the transformed version.
-
 # Make test matrix
 genes.df <- domdom[c(23,24,25,26,27,28,29,30,31,32,33,34)]
 colnames(genes.df) <- c("588710 1 Control", "588710 2 Control", "588710 3 Control", 
@@ -225,7 +221,7 @@ htmp = Heatmap(temp1,
 
 draw(htmp, heatmap_legend_side="bottom")
 
-######################## MAKE FIGURE 4 ########################
+######################## MAKE FIGURE 6 ########################
 
 meta.genes <- c("AT5G09220", #AAP2 #Start of amino acid transport
                 "AT1G77380", #AAP3
@@ -355,7 +351,7 @@ auxin <- read.csv("GO-term-enrichment/for-heatmaps/auxin/588710-auxin.txt",
                      sep="\t", row.names=NULL, header = FALSE)
 auxin.genes <- c("AT5G57390", #AIL5 #Start of auxin synthesis regulators 
                  "AT5G10510", #AIL6
-                 "AT5G54510", #GH3.6 #Start of auxin synthases
+                 "AT5G54510", #GH3.6 #Start of auxin homeostastis genes
                  "AT1G28130", #GH3.17
                  "AT1G73590", #PIN1 #Start of auxin transporters
                  "AT1G70940", #PIN3
@@ -438,7 +434,7 @@ column_split[4:6] = "Domatia\n 588710"
 column_split[7:9] = "Control\n 588711"
 column_split[10:12] = "Domatia\n 588711"
 
-row_split = rep("Auxin synthases", 20)
+row_split = rep("Auxin homeostasis", 20)
 row_split[3:5] = "Auxin transporters"
 row_split[6:12] = "Transcriptional regulation\n via auxin signaling"
 row_split[13:20] = "Genes upregulated\n by auxin"
@@ -457,7 +453,7 @@ row_split[13:20] = "Genes upregulated\n by auxin"
 #         cluster_column_slices = FALSE,
 #         column_gap = unit(2, "mm"),
 #         border = TRUE,
-#         row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
+#         row_split = factor(row_split, levels = c("Auxin homeostasis", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
 #         row_title_rot = 0,
 #         row_gap = unit(2, "mm")
 # )
@@ -477,7 +473,7 @@ htmp = Heatmap(temp1,
         cluster_column_slices = FALSE,
         column_gap = unit(2, "mm"),
         border = TRUE,
-        row_split = factor(row_split, levels = c("Auxin synthases", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
+        row_split = factor(row_split, levels = c("Auxin homeostasis", "Auxin transporters", "Transcriptional regulation\n via auxin signaling", "Genes upregulated\n by auxin")),
         row_title_rot = 0,
         row_gap = unit(2, "mm"),
         row_names_max_width = max_text_width(
@@ -489,7 +485,7 @@ htmp = Heatmap(temp1,
 )
 
 draw(htmp, heatmap_legend_side="bottom")
-######################## MAKE FIGURE 6 ########################
+######################## MAKE FIGURE 4 ########################
 
 biotic.genes <- c("AT3G51570", #NBS-LRR class
                   "AT5G17680",
@@ -502,6 +498,7 @@ biotic.genes <- c("AT3G51570", #NBS-LRR class
                   "AT5G63380", 
                   "AT2G41370", #JA mediated signaling pathway
                   "AT1G56650", #excluding response to JA for now - might be a good supplement figure
+                  "AT5G46760",
                   "AT4G16740", #Terpene and volatile biosynthesis
                   "AT5G23960", 
                   "AT3G25810",
@@ -525,6 +522,7 @@ biotic.genes <- c("LOC117922784",
                   "LOC117929742",
                   "LOC117921328",
                   "LOC117931042",
+                  "LOC117904756", #NEW
                   "LOC117909463",
                   "LOC117927005",
                   "LOC117920973",
@@ -554,6 +552,7 @@ rownames(genes.df2) <- c("Disease resistance protein RPV1-like (1)",
                          "4-coumarate--CoA ligase-like 9",
                          "BTB/POZ domain and ankyrin\nrepeat-containing protein NOOT2",
                          "Transcription factor MYB114-like",
+                         "Transcription factor MYC1-like", #NEW
                          "(-)-germacrene D synthase-like",
                          "Probable terpene synthase 9 (1)",
                          "Probable terpene synthase 9 (2)",
@@ -574,10 +573,10 @@ column_split[7:9] = "Control\n 588711"
 column_split[10:12] = "Domatia\n 588711"
 
 row_split = rep("NBS-LRR class", 21)
-row_split[7] = "Chitin responsive"
+row_split[7] = "Chitin-responsive"
 row_split[8:13] = "JA and methyljasmonate\n biosynthesis"
-row_split[14:15] = "JA-mediated\n signaling pathway"
-row_split[16:21] = "Terpene and\n volatile biosynthesis"
+row_split[14:16] = "JA-mediated\n signaling pathway"
+row_split[17:22] = "Terpene and\n volatile biosynthesis"
 
 #Legend on bottom
 htmp = Heatmap(temp1, 
@@ -594,7 +593,7 @@ htmp = Heatmap(temp1,
                cluster_column_slices = FALSE,
                column_gap = unit(2, "mm"),
                border = TRUE,
-               row_split = factor(row_split, levels = c("NBS-LRR class", "Chitin responsive", 
+               row_split = factor(row_split, levels = c("NBS-LRR class", "Chitin-responsive", 
                                                         "JA and methyljasmonate\n biosynthesis",
                                                         "JA-mediated\n signaling pathway",
                                                         "Terpene and\n volatile biosynthesis")),
